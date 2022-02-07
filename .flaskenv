@@ -1,3 +1,0 @@
-FLASK_APP=webapp.py
-FLASK_ENV=development
-JSONIFY_PRETTYPRINT_REGULAR=True
