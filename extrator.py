@@ -12,6 +12,11 @@
 import tabula
 import pandas as pd
 import json
+from tradutor import nome_pregao_to_codigo
+
+def traduzir_acao(string):
+  return 
+
 
 def str_to_br_currency(string):
   #Write description
@@ -52,21 +57,26 @@ def definir_corretora(file_to_open, passwd):
 # Write description
 # Verifica qual o nome da corretora no cabeçalho da nota
   area_header = [0,0,28,50]
-  df_corretora = json.dumps(tabula.read_pdf(file_to_open, pages = 1, area=area_header, stream = True, relative_area= True, password = passwd, output_format='json'))
+  try:
+    df_corretora = json.dumps(tabula.read_pdf(file_to_open, pages = 1, area=area_header, stream = True, relative_area= True, password = passwd, output_format='json'))
+  except:
+    raise ValueError("Erro ao abrir o arquivo informado")
+  if (df_corretora.find('NOTA DE') == -1):
+    raise ValueError("Documento inválido.")
   if (df_corretora.find('genial') != -1):
     return 'genial'
   elif (df_corretora.find('xp') != -1):
     return 'xp'
   elif (df_corretora.find('clear') != -1):
     return 'clear'
-  raise ValueError("Corretora não suportada!")
+  raise ValueError("Corretora não suportada.")
 
 #Ativa as mensagens na console (dados da nota durante o processamento)
 debug = False
 
-def integrate(datas, negocios, custos):
+def organizar(datas, negocios, custos):
 # """
-# Integra cada data com seus respectivos negócios e planilhas de custos
+# Organiza cada data com seus respectivos negócios e planilhas de custos
 # """
   if not len(datas) == len(negocios) == len(custos):
     raise ValueError("Datas, negócios e custos em quantidades diferentes. Os dados não foram extraídos corretamente!")  
@@ -74,7 +84,7 @@ def integrate(datas, negocios, custos):
   #print(datas)
   for n in range(0,len(datas)):
     if debug: print([datas[n],negocios[n], custos[n]])
-    datas[n][0].update({'negocios': negocios[n], 'custos': custos[n][0]})
+    datas[n][0].update({'Negocios': negocios[n], 'Custos': custos[n][0]})
     var['Nota '+ str(n+1)] = datas[n][0]
   return var
 
@@ -91,8 +101,8 @@ def extrair_data(file_to_open, passwd, formato, corretora, area_datas):
   for content in df_datas:
     if 'Unnamed: 0' in content.columns:
       content = content[['Nr. nota','Unnamed: 0','Data pregão']]
-    content.columns = ['Nr. nota','Folha','Data']
-    content['Corretora'] = corretora
+    content.columns = ['nr. nota','folha','data']
+    content['corretora'] = corretora
     #content = content.reset_index()    
     if formato == 'json': content = content.to_dict(orient='records')
     df_datas_c.append(content)
@@ -112,12 +122,13 @@ def extrair_negocios(file_to_open, passwd, formato, corretora, area_negocios):
     content = content.dropna(axis=1, how='any')
     if content['Tipo mercado'][0] == 'OPCAO DE COMPRA':
       content = content.drop(['Prazo','Unnamed: 0'], axis = 1)
-      content.columns = ['Negociação','C/V','Tipo de mercado','Papel','Quantidade','Preço','Valor Operação','D/C']
+      content.columns = ['Negociação','C/V','Tipo de mercado','Nome Pregão','Quantidade','Preço','Valor Operação','D/C']
     elif content['Tipo mercado'][0] == 'VISTA':
-      content.columns = ['Negociação','C/V','Tipo de mercado','Papel','Quantidade','Preço','Valor Operação','D/C']
+      content.columns = ['Negociação','C/V','Tipo de mercado','Nome Pregão','Quantidade','Preço','Valor Operação','D/C']
     else: continue
     #content = content.reset_index()
     content = fix_sep_negocios(content)
+    content['Código'] = content['Nome Pregão'].apply(nome_pregao_to_codigo)
     if formato == 'json': content = content.to_dict(orient='index')
     df_negocios_c.append(content)
   return df_negocios_c
@@ -152,6 +163,8 @@ def extrair_dados(file_to_open, passwd, formato = 'json'):
   #planilha de cabeçalho, negócios e custos de cada nota de corretagem 
 
   #Verifica qual a corretora antes de continuar
+  if not (file_to_open): raise ValueError("Arquivo não informado")
+  
   corretora = definir_corretora(file_to_open, passwd)
   if debug: print(corretora)
 
@@ -177,7 +190,10 @@ def extrair_dados(file_to_open, passwd, formato = 'json'):
   df_negocios_c = extrair_negocios(file_to_open,passwd, formato, corretora, area_negocios)
   df_custos_c = extrair_custos(file_to_open,passwd, formato, corretora, area_custos, colunas_custos, campos_custos)
   
-  return integrate(df_datas_c, df_negocios_c,df_custos_c)
+  return organizar(
+    df_datas_c, 
+    df_negocios_c,
+    df_custos_c)
 
 
 
