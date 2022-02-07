@@ -20,9 +20,11 @@ No momento suporta notas fiscais das corretoras:
 
 Clone o repositório e inicie o servidor do flask.
 
-<code>git clone https://github.com/Marcelo-Ferraz-de-Oliveira/Controle-aplicacoes-financeiras.git
-mv .flaskenv.example .flaskenv
-flask run</code>
+<code>git clone https://github.com/Marcelo-Ferraz-de-Oliveira/Controle-aplicacoes-financeiras.git</code>
+
+<code>mv .flaskenv.example .flaskenv</code>
+
+<code>flask run</code>
 
 Passe a nota de corretagem e a senha do PDF como argumento, conforme o exemplo abaixo:
 
