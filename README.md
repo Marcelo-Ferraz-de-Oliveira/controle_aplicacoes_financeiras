@@ -31,3 +31,13 @@ Passe a nota de corretagem e a senha do PDF como argumento, conforme o exemplo a
 <code>#http://127.0.0.1:5000/negocios?arquivo=nota.pdf&senha=abc</code>
 
 O servidor retornará os dados da nota em formato JSON.
+
+#Tecnologias utilizadas:
+
+Python flask
+
+react
+
+react-bootstrap
+
+styled-components.com
