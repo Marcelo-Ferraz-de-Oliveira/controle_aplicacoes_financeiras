@@ -2,6 +2,10 @@ from extrator import extrair_dados
 import json
 from flask import Flask, request
 from json2html import *
+import string
+import random
+from os import remove
+
 
 app = Flask(__name__)
 
@@ -40,17 +44,54 @@ def get_negocios():
         
 @app.route('/negocios', methods=['POST'])
 def get_negocios_post():
-    tempfile = '/tmp/tempfile'
-    with open(tempfile, 'wb') as f:
-        f.write(request.files['file'].read())
-    dados = extrair_dados(
-                tempfile,
-                request.values['pwd']
-            )
-    
+    #O arquivo inteiro é passado através do POST
+    #e é necessário amazená-lo em um arquivo temporário para posterior processamento
+    if request.files:
+        #Cria um arquivo temporário com nome aleatório para armazenar o arquivo
+        temp_file = '/tmp/'+( ''.join(random.choice(string.ascii_letters) for x in range(30)))
+        with open(temp_file, 'wb') as f:
+            f.write(request.files['file'].read())
+        dados = extrair_dados(
+                    temp_file,
+                    request.values['pwd']
+                )
+        remove(temp_file)
+        return json.dumps(calcular_total(dados))
+    else:
+        return json.dumps([])
 
-    #dados["Nota 1"]['Custos']['Total'] = 
-    #print(json.dumps(calcular_total(dados)))
-    return json.dumps(calcular_total(dados))
-    #return json.dumps(dados)
-    
+#posicao = {"ABEV3": {"ativo": "ABEV3", "quantidade": 17900, "preco_medio": 14.95},
+#           "IRBR3": {"ativo": "IRBR3", "quantidade": 2600, "preco_medio": 3.64}}
+posicao = {}
+
+
+def atualizar_posicao(posicao, notas):
+    for i, nota in enumerate(notas):
+        for j, negocio in enumerate(nota["Negocios"]):
+            if negocio["Código"] in list(posicao.keys()):
+                k = negocio["Código"]
+                #ma = preço médio anterior
+                #qa = quantidade anterior
+                #m = preço médio atual (Valor da Operação)
+                #q = quantidade atual
+                # Novo preço médio = ((ma*qa)+m)/(qa+q)
+                p_medio = (((posicao[k]['preco_medio']*posicao[k]['quantidade'])+negocio['Valor Operação'])/(posicao[k]['quantidade']+negocio['Quantidade']))
+                posicao[k]['quantidade'] += negocio["Quantidade"]
+                posicao[k]['preco_medio'] = p_medio
+            else:
+                posicao[negocio["Código"]]={
+                    "ativo": negocio["Código"],
+                    "quantidade": negocio["Quantidade"],
+                    "preco_medio": negocio["Valor Operação"]/negocio["Quantidade"]}
+    return posicao
+
+@app.route('/somarnotas', methods=['POST'])
+def set_somarnotas():
+    if request.values:
+       return atualizar_posicao(posicao, json.loads(request.values["nota"]))
+                    
+    return json.dumps(posicao)           
+
+@app.route('/posicao', methods=['POST'])
+def get_posicao():
+    return json.dumps(posicao)

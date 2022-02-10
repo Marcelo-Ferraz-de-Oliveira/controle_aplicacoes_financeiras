@@ -1,13 +1,28 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import Notas from "./packages/Notas";
-import Loader from "./packages/Loader";
+import Notas from "./components/Notas";
+import Loader from "./components/Loader";
 import { Container } from "react-bootstrap";
-import { Layout } from "./packages/Layout";
+import { Layout } from "./components/Layout";
 import styled from "styled-components";
+import Posicoes from "./components/Posicoes";
 
 const App = () => {
   const [data, setData] = useState([]);
+  const [posicoes, setPosicoes] = useState([]);
+  const [cp, setCp] = useState({ Notas: true, Posicoes: true, Loader: true });
+
+  useEffect(() => {
+    //Fetch Tasks
+    const fetchTasks = async () => {
+      const res = await fetch("/posicao", {
+        method: "POST",
+      });
+      const data = await res.json();
+      setPosicoes(data);
+    };
+    fetchTasks();
+  }, []);
 
   const fetchData = async (body) => {
     const res = await fetch("/negocios", {
@@ -20,11 +35,31 @@ const App = () => {
     //return content;
   };
 
+  const somarNotas = async (notas) => {
+    // alert(notas[0]["nr. nota"]);
+    let data = new FormData();
+    data.append("nota", JSON.stringify(notas));
+    const res = await fetch("/somarnotas", {
+      method: "POST",
+      body: data,
+    });
+    const content = await res.json();
+    setPosicoes(content);
+    setData([]);
+  };
+
   return (
     <Layout>
-      <Container fluid="md">
+      <Container fluid="md" className=" mt-3 p-3">
         <Loader fetchData={fetchData} />
-        {data.length === 0 ? "" : data && <Notas notas={data} />}
+        {posicoes.length === 0 ? (
+          "Carregando posição..."
+        ) : (
+          <Posicoes posicoes={posicoes} />
+        )}
+        {data.length === 0
+          ? ""
+          : data && <Notas notas={data} somarNotas={somarNotas} />}
       </Container>
     </Layout>
   );
