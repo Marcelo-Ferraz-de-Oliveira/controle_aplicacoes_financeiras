@@ -4,10 +4,12 @@ import { useState } from "react";
 import styled from "styled-components";
 
 const Layout = styled.div`
-  .form {
-    background-color: #222;
+  form {
+    background-color: #fff;
+    margin-top: 2px;
+    margin-bottom: 2px;
     &:hover {
-      background-color: #333;
+      background-color: #fff;
     }
   }
 `;
@@ -25,10 +27,11 @@ const Loader = ({ fetchData }) => {
   };
 
   return (
-    <Layout>
-      <Form onSubmit={onSubmit}>
+    <Layout className="bg-light card p-3">
+      <h4>Importar nota de negociação</h4>
+      <Form onSubmit={onSubmit} className="d-grid bg-light">
         <Form.Group className="mb-3" controlId="notadecorretagem">
-          <Form.Label>Nota de corretagem</Form.Label>
+          <Form.Label>Nota de negociação (PDF)</Form.Label>
           <Form.Control
             type="file"
             placeholder="Nota"
@@ -46,7 +49,7 @@ const Loader = ({ fetchData }) => {
             onChange={(e) => setPwd(e.target.value)}
           />
         </Form.Group>
-        <Button variant="primary" type="submit">
+        <Button variant="primary" type="submit" size="lg">
           Processar nota de corretagem
         </Button>
       </Form>
