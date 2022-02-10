@@ -5,15 +5,15 @@ __pycache__/
 *.old
 
 # dependencies
-/node_modules
-/.pnp
+/react-frontend/node_modules
+/react-frontend/.pnp
 .pnp.js
 
 # testing
-/coverage
+/react-frontend/coverage
 
 # production
-/build
+/react-frontend/build
 
 # misc
 .DS_Store
