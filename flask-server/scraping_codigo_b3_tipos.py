@@ -11,34 +11,45 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
 import pandas as pd
-from datetime import date
+from datetime import date, timedelta
 import glob
 import os
 import re
 import json
 
+def get_wd(dat):
+    options = webdriver.ChromeOptions()
+    #Opções para usar navegador sem interface gráfica
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--enable-javascript')
+    #Define o diretório padrão para download como o diretório atual
+    prefs = {"download.default_directory" : "."}
+    options.add_experimental_option('prefs',prefs)
+    url_b3 = 'https://arquivos.b3.com.br/tabelas/InstrumentsConsolidated/'+dat.strftime("%Y-%m-%d")
+    print(url_b3)
+    wd = webdriver.Chrome('chromedriver',options=options)
+    wd.get(url_b3)
+    time.sleep(1)
+    #verifica se é feriado ou fim de semana e tenta no dia anterior 
+    if wd.find_elements('id','label-nao-encontrado'):
+        return get_wd(dat-timedelta(days=1))
+    return wd
+
+
 def obter_CSV_B3():
-    file = glob.glob('Instruments*.csv')[0]
+    file = glob.glob('Instruments*.csv')
+    print(file)
     if 'Instruments' in file:
         df = pd.read_csv(file,sep=';',encoding='ISO-8859-1', low_memory=False)
         #os.remove(file)
         return df
     else:
-        options = webdriver.ChromeOptions()
-        #Opções para usar navegador sem interface gráfica
-        options.add_argument('--headless')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        options.add_argument('--enable-javascript')
-        #Define o diretório padrão para download como o diretório atual
-        prefs = {"download.default_directory" : "."}
-        options.add_experimental_option('prefs',prefs)
-        
-        url_b3 = 'https://arquivos.b3.com.br/tabelas/InstrumentsConsolidated/'+date.today().strftime("%Y-%m-%d")
 
-        wd = webdriver.Chrome('chromedriver',options=options)
-        wd.get(url_b3)
-        time.sleep(1)
+        #Não há listagem em finais de semana
+
+        wd = get_wd(date.today())    
         #Seleciona o último link e clica nele para baixar o arquivo
         #Não há id, classe, ou qualquer outra coisa para identificar o link!
         links = wd.find_elements('tag name','a')
@@ -48,7 +59,7 @@ def obter_CSV_B3():
         #Retorna um Dataframe e remove o arquivo
         file = glob.glob('Instruments*.csv')[0]
         df = pd.read_csv(file,sep=';',encoding='ISO-8859-1', low_memory=False)
-        os.remove(file)
+        #os.remove(file)
         return df
     
 if __name__ == "__main__":
