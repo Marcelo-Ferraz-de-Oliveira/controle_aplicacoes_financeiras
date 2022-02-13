@@ -39,12 +39,13 @@ def get_wd(dat):
 
 
 def obter_CSV_B3():
-    file = glob.glob('Instruments*.csv')
-    print(file)
-    if 'Instruments' in file:
-        df = pd.read_csv(file,sep=';',encoding='ISO-8859-1', low_memory=False)
-        #os.remove(file)
-        return df
+    files = glob.glob('Instruments*.csv')
+    print(files)
+    for file in files:
+        if 'Instruments' in file:
+            df = pd.read_csv(file,sep=';',encoding='ISO-8859-1', low_memory=False)
+            #os.remove(file)
+            return df
     else:
 
         #Não há listagem em finais de semana
