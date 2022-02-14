@@ -14,14 +14,19 @@ const Layout = styled.div`
   }
 `;
 
-const Loader = ({ fetchData }) => {
-  const [file, setFile] = useState("");
+const Loader = ({ fetchData, bText }) => {
+  const [files, setFiles] = useState("");
   const [pwd, setPwd] = useState("");
 
   const onSubmit = (e) => {
     e.preventDefault();
     let data = new FormData();
-    data.append("file", file);
+    let x = 0;
+    for (let file of files) {
+      console.log(file);
+      data.append(`file${x}`, file);
+      x++;
+    }
     data.append("pwd", pwd);
     fetchData(data);
   };
@@ -34,8 +39,9 @@ const Loader = ({ fetchData }) => {
           <Form.Label>Nota de negociação (PDF)</Form.Label>
           <Form.Control
             type="file"
+            multiple
             placeholder="Nota"
-            onChange={(e) => setFile(e.target.files[0])}
+            onChange={(e) => setFiles(e.target.files)}
           />
           <Form.Text className="text-muted"></Form.Text>
         </Form.Group>
@@ -50,7 +56,7 @@ const Loader = ({ fetchData }) => {
           />
         </Form.Group>
         <Button variant="primary" type="submit" size="lg">
-          Processar nota de corretagem
+          {bText}
         </Button>
       </Form>
     </Layout>

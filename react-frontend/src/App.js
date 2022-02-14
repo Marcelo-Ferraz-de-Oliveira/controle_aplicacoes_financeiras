@@ -10,6 +10,7 @@ import Posicoes from "./components/Posicoes";
 const App = () => {
   const [data, setData] = useState([]);
   const [posicoes, setPosicoes] = useState([]);
+  const [bText, setBText] = useState("Processar nota de negociação");
   const [cp, setCp] = useState({ Notas: true, Posicoes: true, Loader: true });
 
   useEffect(() => {
@@ -25,13 +26,14 @@ const App = () => {
   }, []);
 
   const fetchData = async (body) => {
+    setBText("Processando...");
     const res = await fetch("/negocios", {
       method: "POST",
       body: body,
     });
     const content = await res.json();
     setData([...data, ...content]);
-
+    setBText("Processar nota de negociação");
     //return content;
   };
 
@@ -51,7 +53,7 @@ const App = () => {
   return (
     <Layout>
       <Container fluid="md" className=" mt-3 p-3">
-        <Loader fetchData={fetchData} />
+        <Loader fetchData={fetchData} bText={bText} />
         {posicoes.length === 0 ? (
           "Carregando posição..."
         ) : (
