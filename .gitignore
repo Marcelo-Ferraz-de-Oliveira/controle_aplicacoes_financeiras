@@ -5,6 +5,7 @@ __pycache__/
 .flaskenv
 *.old
 venv/
+Instruments*
 
 # dependencies
 .pnp
