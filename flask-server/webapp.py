@@ -12,12 +12,6 @@ app = Flask(__name__)
 def template (content):
     return '<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0">   <title>Bootstrap Site</title>   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script> <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js" integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/" crossorigin="anonymous"></script></head><body>' + content + ' </body> </html>' 
 
-def calcular_total (dados):
-    for nota, _ in enumerate(dados):
-        dados[nota]['Custos']['Total'] = 0
-        for custo in dados[nota]['Custos']:
-            if custo != 'Total': dados[nota]['Custos']['Total'] += dados[nota]['Custos'][custo]
-    return dados
 
 #Une os dados de notas com múltiplas páginas
 # def comparar_paginas(dados):
@@ -39,7 +33,7 @@ def get_negocios():
 
     #dados["Nota 1"]['Custos']['Total'] = 
     #print(json.dumps(calcular_total(dados)))
-    return json.dumps(calcular_total(dados))
+    return json.dumps(dados)
     #return json.dumps(dados)
         
 @app.route('/negocios', methods=['POST'])
@@ -48,15 +42,18 @@ def get_negocios_post():
     #e é necessário amazená-lo em um arquivo temporário para posterior processamento
     if request.files:
         #Cria um arquivo temporário com nome aleatório para armazenar o arquivo
-        temp_file = '/tmp/'+( ''.join(random.choice(string.ascii_letters) for x in range(30)))
-        with open(temp_file, 'wb') as f:
-            f.write(request.files['file'].read())
-        dados = extrair_dados(
-                    temp_file,
-                    request.values['pwd']
-                )
-        remove(temp_file)
-        return json.dumps(calcular_total(dados))
+        notas = []
+        for file in request.files.values():
+            temp_file = '/tmp/'+( ''.join(random.choice(string.ascii_letters) for x in range(30)))
+            with open(temp_file, 'wb') as f:
+                f.write(file.read())
+            dados = extrair_dados(
+                        temp_file,
+                        request.values['pwd']
+                    )
+            remove(temp_file)
+            notas = notas + dados
+        return json.dumps(notas)
     else:
         return json.dumps([])
 
@@ -64,25 +61,40 @@ def get_negocios_post():
 #           "IRBR3": {"ativo": "IRBR3", "quantidade": 2600, "preco_medio": 3.64}}
 posicao = {}
 
+# def custo_por_ativo(posicao,notas):
+#     soma_nota = atualizar_posicao()
+#     for i, nota in enumerate(notas):
+#         for j, negocio in enumerate(nota["Negocios"]):
+            
 
 def atualizar_posicao(posicao, notas):
     for i, nota in enumerate(notas):
-        for j, negocio in enumerate(nota["Negocios"]):
-            if negocio["Código"] in list(posicao.keys()):
-                k = negocio["Código"]
+        for j, negocio in enumerate(nota["negocios"]):
+            if negocio["codigo"] in list(posicao.keys()):
+                k = negocio["codigo"]
                 #ma = preço médio anterior
                 #qa = quantidade anterior
                 #m = preço médio atual (Valor da Operação)
                 #q = quantidade atual
                 # Novo preço médio = ((ma*qa)+m)/(qa+q)
-                p_medio = (((posicao[k]['preco_medio']*posicao[k]['quantidade'])+negocio['Valor Operação'])/(posicao[k]['quantidade']+negocio['Quantidade']))
-                posicao[k]['quantidade'] += negocio["Quantidade"]
+                #print(negocio, posicao)
+                negocio["quantidade"] = negocio["quantidade"] if negocio["cv"]=="C" else -negocio["quantidade"]
+                posicao[k]['quantidade'] += negocio["quantidade"]
+                #Remove a posição se ela for zerada
+                if posicao[k]['quantidade'] == 0: 
+                    del posicao[k]
+                    continue
+                p_medio = (((posicao[k]['preco_medio']*posicao[k]['quantidade'])+negocio['valor_operacao'])/(posicao[k]['quantidade']+negocio['quantidade']))
                 posicao[k]['preco_medio'] = p_medio
+                posicao[k]['valor'] += negocio['valor_operacao']
             else:
-                posicao[negocio["Código"]]={
-                    "ativo": negocio["Código"],
-                    "quantidade": negocio["Quantidade"],
-                    "preco_medio": negocio["Valor Operação"]/negocio["Quantidade"]}
+                negocio["quantidade"] = negocio["quantidade"] if negocio["cv"]=="C" else -negocio["quantidade"]
+                posicao[negocio["codigo"]]={
+                    "ativo": negocio["codigo"],
+                    "quantidade": negocio["quantidade"],
+                    "preco_medio": negocio["valor_operacao"]/negocio["quantidade"],
+                    "valor": negocio["valor_operacao"]}
+    print(posicao)
     return posicao
 
 @app.route('/somarnotas', methods=['POST'])

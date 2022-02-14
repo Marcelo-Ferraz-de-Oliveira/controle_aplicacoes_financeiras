@@ -12,30 +12,29 @@ const Negocios = ({ negocios }) => {
               <Accordion.Body>
                 <h6>
                   Mercado Negociado:{" "}
-                  <Badge bg="info">{negocio["Negociação"]}</Badge>
+                  <Badge bg="info">{negocio.negociacao}</Badge>
                 </h6>
                 <h6>
-                  Compra ou venda: <Badge bg="info">{negocio["C/V"]}</Badge>
+                  Compra ou venda: <Badge bg="info">{negocio.cv}</Badge>
                 </h6>
                 <h6>
                   Categoria do ativo:{" "}
-                  <Badge bg="info">{negocio["Tipo de mercado"]}</Badge>
+                  <Badge bg="info">{negocio.tipo_mercado}</Badge>
                 </h6>
                 <h6>
-                  Nome do ativo:{" "}
-                  <Badge bg="info">{negocio["Nome Pregão"]}</Badge>
+                  Nome do ativo: <Badge bg="info">{negocio.nome_pregao}</Badge>
                 </h6>
                 <h6>
-                  Código do ativo: <Badge bg="info">{negocio["Código"]}</Badge>
+                  Código do ativo: <Badge bg="info">{negocio.codigo}</Badge>
                 </h6>
                 <h6>
-                  Quantidade: <Badge bg="info">{negocio["Quantidade"]}</Badge>
+                  Quantidade: <Badge bg="info">{negocio.quantidade}</Badge>
                 </h6>
                 <h6>
                   Valor unitário:{" "}
                   <Badge bg="info">
                     R$
-                    {negocio["Preço"].toLocaleString("pt-br", {
+                    {negocio.preco.toLocaleString("pt-br", {
                       minimumFractionDigits: 2,
                     })}
                   </Badge>
@@ -44,13 +43,13 @@ const Negocios = ({ negocios }) => {
                   Valor total:{" "}
                   <Badge bg="info">
                     R$
-                    {negocio["Valor Operação"].toLocaleString("pt-br", {
+                    {negocio.valor_operacao.toLocaleString("pt-br", {
                       minimumFractionDigits: 2,
                     })}
                   </Badge>
                 </h6>
                 <h6>
-                  Coberto/Descoberto: <Badge bg="info">{negocio["D/C"]}</Badge>
+                  Coberto/Descoberto: <Badge bg="info">{negocio.dc}</Badge>
                 </h6>
               </Accordion.Body>
             </Accordion.Item>

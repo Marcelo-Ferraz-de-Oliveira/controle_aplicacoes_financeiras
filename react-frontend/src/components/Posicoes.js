@@ -22,8 +22,14 @@ const Posicoes = ({ posicoes }) => {
             <h6>Ativo: {posicao.ativo}</h6>
             <h6>Quantidade: {posicao.quantidade}</h6>
             <h6>
-              Preço Médio:
+              Preço Médio: R$
               {posicao.preco_medio.toLocaleString("pt-br", {
+                minimumFractionDigits: 2,
+              })}
+            </h6>
+            <h6>
+              Valor: R$
+              {posicao.valor.toLocaleString("pt-br", {
                 minimumFractionDigits: 2,
               })}
             </h6>

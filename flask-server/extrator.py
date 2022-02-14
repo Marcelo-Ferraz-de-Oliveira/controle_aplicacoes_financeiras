@@ -6,6 +6,53 @@
 #XP
 #Genial
 
+"""
+Será gerado um json no seguinte formato:
+
+[
+  {
+    "nota": 0000,
+    "folha": 0,
+    "data": 01/01/2001,
+    "corretora": "nome_corretora",
+    "negocios": [
+      {
+        "index": 0,
+        "negociacao": "1-BOVESPA",
+        "cv": "C",
+        "tipo_mercado": "VISTA",
+        "nome_pregao": "PETROBRASONN2"
+        "quantidade": 100,
+        "preco": 20.0,
+        "valor_operacao": 2000.0,
+        "dc": "C",
+        "codigo": "PETR4"
+      },
+      {
+        "index": 1,
+        "negociacao": "1-BOVESPA",
+        "cv": "C",
+        "tipo_mercado": "VISTA",
+        "nome_pregao": "PETROBRASONN2"
+        "quantidade": 100,
+        "preco": 20.0,
+        "valor_operacao": 2000.0,
+        "dc": "C",
+        "codigo": "PETR4"
+      }],
+    "custos": {
+      "taxa_liquidacao": 0.0,
+      "taxa_registro": 0.0,
+      "taxa_termo_opcoes": 0.0,
+      #Outras taxas, a depender da corretora
+      "total": 0.0
+      
+    }
+  }
+]
+
+
+"""
 
 #!pip install tabula-py
 #!apt install default-jre
@@ -13,6 +60,7 @@ import tabula
 import pandas as pd
 import json
 from tradutor import nome_pregao_to_codigo
+from functools import reduce
 
 def traduzir_acao(string):
   return 
@@ -42,15 +90,15 @@ def us_currency_to_float(n):
 
 def fix_sep_negocios(df):
   word_df = df.copy()
-  word_df['Preço'] = word_df['Preço'].apply(str_to_br_currency)
-  word_df['Valor Operação'] = word_df['Valor Operação'].apply(str_to_br_currency)
-  word_df['Quantidade'] = word_df['Quantidade'].apply(us_currency_to_float)
+  word_df['preco'] = word_df['preco'].apply(str_to_br_currency)
+  word_df['valor_operacao'] = word_df['valor_operacao'].apply(str_to_br_currency)
+  word_df['quantidade'] = word_df['quantidade'].apply(us_currency_to_float)
   return word_df
 
 def fix_sep_custos(df):
 #Write description
   word_df = df.copy()
-  word_df['Valor'] = word_df['Valor'].apply(str_to_br_currency)
+  word_df['valor'] = word_df['valor'].apply(str_to_br_currency)
   return word_df
 
 def definir_corretora(file_to_open, passwd):
@@ -64,11 +112,11 @@ def definir_corretora(file_to_open, passwd):
   if (df_corretora.find('NOTA DE') == -1):
     raise ValueError("Documento inválido.")
   if (df_corretora.find('genial') != -1):
-    return 'genial'
+    return 'Genial'
   elif (df_corretora.find('xp') != -1):
-    return 'xp'
+    return 'XP'
   elif (df_corretora.find('clear') != -1):
-    return 'clear'
+    return 'Clear'
   raise ValueError("Corretora não suportada.")
 
 #Ativa as mensagens na console (dados da nota durante o processamento)
@@ -85,86 +133,77 @@ def organizar(datas, negocios, custos):
   for n in range(0,len(datas)):
     if debug: print([datas[n],negocios[n], custos[n]])
     #Cria um resumo de negócios com os ativos e a soma dos negócios
-    resumo = pd.DataFrame.from_dict(negocios[n])
-    resumos = []
-    for c in resumo['Código'].unique():
-      resumos.append(resumo[resumo["Código"] == c])
-    for k, _ in enumerate(resumos):
-      resumos[k] = resumos[k][["Código","Valor Operação"]]
-    datas[n][0].update({'Negocios': negocios[n], 'Custos': custos[n][0]})
+    # resumo = pd.DataFrame.from_dict(negocios[n])
+    # resumos = []
+    # for c in resumo['Código'].unique():
+    #   resumos.append(resumo[resumo["Código"] == c])
+    # for k, _ in enumerate(resumos):
+    #   resumos[k] = resumos[k][["Código","Valor Operação"]]
+    #A variável datas contém o cabeçalho da nota de corretagem
+    #A ela vai ser acrescentada os negocios e os custos
+    datas[n][0].update({'negocios': negocios[n], 'custos': custos[n][0]})
     var.append(datas[n][0])
   return var
 
-def extrair_data(file_to_open, passwd, formato, corretora, area_datas):
-# """
-# Write description
-# """  
+def extrair_data(file_to_open, passwd, corretora, area_datas):
 
   #Extração do número da nota, folha e data
-  df_datas = tabula.io.read_pdf(file_to_open, stream = True, area=area_datas, pages = 'all',relative_area= True, password = passwd)
-  if debug: print(df_datas)
+  dfs_data = tabula.io.read_pdf(file_to_open, stream = True, area=area_datas, pages = 'all',relative_area= True, password = passwd)
+  if debug: print(dfs_data)
   #Correção e mudança de nome dos campos
-  df_datas_c = []
-  for content in df_datas:
-    if 'Unnamed: 0' in content.columns:
-      content = content[['Nr. nota','Unnamed: 0','Data pregão']]
-    content.columns = ['nr. nota','folha','data']
-    content['corretora'] = corretora
-    #content = content.reset_index()    
-    if formato == 'json': content = content.to_dict(orient='records')
-    df_datas_c.append(content)
-  if debug: print(df_datas_c)
-  return df_datas_c
+  datas = []
+  for df_data in dfs_data:
+    if 'Unnamed: 0' in df_data.columns:
+      df_data = df_data[['Nr. nota','Unnamed: 0','Data pregão']]
+    df_data.columns = ['nota','folha','data']
+    df_data['corretora'] = corretora
+    #df_data = data.reset_index()
+    datas.append(df_data.to_dict(orient='records'))
+  if debug: print(datas)
+  return datas
 
-def extrair_negocios(file_to_open, passwd, formato, corretora, area_negocios):
-# """
-# Write description
-# """  
+def extrair_negocios(file_to_open, passwd, corretora, area_negocios): 
   #Extração dos negócios realizados
-  df_negocios = tabula.io.read_pdf(file_to_open, stream = True, area=area_negocios, pages = 'all',relative_area= True, password = passwd)
-  if debug: print(df_negocios)
+  dfs_negocios = tabula.io.read_pdf(file_to_open, stream = True, area=area_negocios, pages = 'all',relative_area= True, password = passwd)
+  if debug: print(dfs_negocios)
   #Exclui associações incorretas (NANs) e colunas desnecessárias, renomeia colunas e corrige os separadores numéricos
-  df_negocios_c = []
-  for content in df_negocios:
-    content = content.dropna(axis=1, how='any')
-    if content['Tipo mercado'][0] == 'OPCAO DE COMPRA':
-      content = content.drop(['Prazo','Unnamed: 0'], axis = 1)
-      content.columns = ['Negociação','C/V','Tipo de mercado','Nome Pregão','Quantidade','Preço','Valor Operação','D/C']
-    elif content['Tipo mercado'][0] == 'VISTA':
-      content.columns = ['Negociação','C/V','Tipo de mercado','Nome Pregão','Quantidade','Preço','Valor Operação','D/C']
+  negocios = []
+  for df_negocios in dfs_negocios:
+    df_negocios = df_negocios.dropna(axis=1, how='any')
+    if df_negocios['Tipo mercado'][0] == 'OPCAO DE COMPRA':
+      df_negocios = df_negocios.drop(['Prazo','Unnamed: 0'], axis = 1)
+    elif df_negocios['Tipo mercado'][0] == 'VISTA':
+      pass
     else: continue
-    #content = content.reset_index()
-    content = fix_sep_negocios(content)
-    content['Código'] = content['Nome Pregão'].apply(nome_pregao_to_codigo)
-    content = content.reset_index()
-    if formato == 'json': content = list(content.to_dict(orient='index').values())
-    #print(content)
-    df_negocios_c.append(content)
-  return df_negocios_c
+    df_negocios.columns = ['negociacao','cv','tipo_mercado','nome_pregao','quantidade','preco','valor_operacao','dc']
+    #df_negocios = df_negocios.reset_index()
+    df_negocios = fix_sep_negocios(df_negocios)
+    df_negocios['codigo'] = df_negocios['nome_pregao'].apply(nome_pregao_to_codigo)
+    df_negocios = df_negocios.reset_index()
+    #print(df_negocios)
+    negocios.append(list(df_negocios.to_dict(orient='index').values()))
+  return negocios
 
-def extrair_custos(file_to_open, passwd, formato, corretora, area_custos, columns_custos, campos):
-# """
-# Write description
-# """  
+def extrair_custos(file_to_open, passwd, corretora, area_custos, columns_custos, campos):
+ 
     #Extração da planilha de custos da nota
-    df_custos = tabula.io.read_pdf(file_to_open, stream = True, area=area_custos, pages = 'all',relative_area= True, password = passwd, columns=columns_custos)
-    if debug: print(df_custos)
+    dfs_custos = tabula.io.read_pdf(file_to_open, stream = True, area=area_custos, pages = 'all',relative_area= True, password = passwd, columns=columns_custos)
+    if debug: print(dfs_custos)
     #Seleção dos campos necessários, mudança de nome e inclusão de valores faltantes
-    df_custos_c = []
-    for content in df_custos:
-      campos_custos= ((content[campos[0]:campos[1]],content[campos[2]:campos[3]],content[campos[4]:campos[5]]))
-      content = pd.concat(campos_custos)
-      content.columns=['Custo','Valor','C/D']
-      content['Valor'] = content['Valor'].fillna('0')
-      #content['C/D'] = content['C/D'].fillna('N/A')
-      content = content.set_index('Custo').drop('C/D', axis=1)
-      content = fix_sep_custos(content)
-      content = content.transpose()
-      if formato =='json': content = content.to_dict(orient='records')
-      df_custos_c.append(content)
-    return df_custos_c
+    custos = []
+    for df_custos in dfs_custos:
+      campos_custos= ((df_custos[campos[0]:campos[1]],df_custos[campos[2]:campos[3]],df_custos[campos[4]:campos[5]]))
+      df_custos = pd.concat(campos_custos)
+      df_custos.columns=['custo','valor','cd']
+      df_custos['valor'] = df_custos['valor'].fillna('0')
+      df_custos = df_custos.set_index('custo').drop('cd', axis=1)
+      df_custos = fix_sep_custos(df_custos)
+      df_custos = df_custos.transpose()
+      df_custos['total'] = sum(set(df_custos.loc['valor'].values))
+      custos.append(df_custos.to_dict(orient='records'))
+    return custos
 
-def extrair_dados(file_to_open, passwd, formato = 'json'):
+def extrair_dados(file_to_open, passwd):
   # """
   # Write description
   # """ 
@@ -178,13 +217,13 @@ def extrair_dados(file_to_open, passwd, formato = 'json'):
   if debug: print(corretora)
 
   #Seleciona as áreas de análise do PDF para cada corretora
-  if corretora in ('clear','xp'):
+  if corretora in ('Clear','XP'):
     area_datas = [0,70,8,100]
     area_negocios = [28,0,53,100]
     area_custos = [53,50,95,100]
     colunas_custos=[450,550,600]
     campos_custos = [2,4,6,9,12,18]
-  elif corretora == 'genial':
+  elif corretora == 'Genial':
     area_datas = [0,70,8,100]
     area_negocios = [25,0,53,100]
     area_custos = [53,50,85,100]
@@ -195,18 +234,18 @@ def extrair_dados(file_to_open, passwd, formato = 'json'):
 
 
   #Extração
-  df_datas_c = extrair_data(file_to_open, passwd, formato, corretora, area_datas)
-  df_negocios_c = extrair_negocios(file_to_open,passwd, formato, corretora, area_negocios)
-  df_custos_c = extrair_custos(file_to_open,passwd, formato, corretora, area_custos, colunas_custos, campos_custos)
+  datas = extrair_data(file_to_open, passwd, corretora, area_datas)
+  negocios = extrair_negocios(file_to_open,passwd, corretora, area_negocios)
+  custos = extrair_custos(file_to_open,passwd, corretora, area_custos, colunas_custos, campos_custos)
   
   return organizar(
-    df_datas_c, 
-    df_negocios_c,
-    df_custos_c)
+    datas, 
+    negocios,
+    custos)
 
 
 
 if __name__ == "__main__":
-  print(extrair_dados("/home/marcelo/Documentos/controle-aplicações-financeiras/content/nota-de-corretagem-clear-multiplas-paginas.pdf", "007", formato = 'json'))
+  print(extrair_dados("/home/marcelo/Documentos/controle-aplicações-financeiras/content/nota-de-corretagem-clear-multiplas-paginas.pdf", "007"))
   
   
