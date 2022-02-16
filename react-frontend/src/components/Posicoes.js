@@ -12,6 +12,12 @@ const Layout = styled.div`
   }
 `;
 
+const toBR = (str) => {
+  return str.toLocaleString("pt-br", {
+    minimumFractionDigits: 2,
+  });
+};
+
 const Posicoes = ({ posicoes }) => {
   return (
     <Container className="bg-warning text-dark card p-3 justify-content-md-center">
@@ -22,16 +28,20 @@ const Posicoes = ({ posicoes }) => {
             <h6>Ativo: {posicao.ativo}</h6>
             <h6>Quantidade: {posicao.quantidade}</h6>
             <h6>
-              Preço Médio: R$
-              {posicao.preco_medio.toLocaleString("pt-br", {
-                minimumFractionDigits: 2,
-              })}
+              Preço médio: R$
+              {toBR(posicao.preco_medio)}
             </h6>
             <h6>
               Valor: R$
-              {posicao.valor.toLocaleString("pt-br", {
-                minimumFractionDigits: 2,
-              })}
+              {toBR(posicao.valor)}
+            </h6>
+            <h6>
+              Lucro atual: R$
+              {toBR(posicao.lucro)}
+            </h6>
+            <h6>
+              Lucro total: R$
+              {toBR(posicao.lucro_total)}
             </h6>
           </Container>
         </Stack>

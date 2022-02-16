@@ -78,7 +78,6 @@ def str_to_br_currency(string):
   return float(string)
 
 def us_currency_to_float(n):
-  print(n)
   #Write description
   #Números com 2 ou mais pontos (pandas vai converter pra string)
   if type(n) == str:
