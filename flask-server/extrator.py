@@ -179,6 +179,8 @@ def extrair_negocios(file_to_open, passwd, corretora, area_negocios):
     #df_negocios = df_negocios.reset_index()
     df_negocios = fix_sep_negocios(df_negocios)
     df_negocios['codigo'] = df_negocios['nome_pregao'].apply(nome_pregao_to_codigo)
+    #calcula o percentual do custo
+    df_negocios['custo_proporcional'] = df_negocios['valor_operacao'].apply(lambda x: abs(x))/sum(df_negocios['valor_operacao'].apply(lambda x: abs(x)))
     df_negocios = df_negocios.reset_index()
     #print(df_negocios)
     negocios.append(list(df_negocios.to_dict(orient='index').values()))
