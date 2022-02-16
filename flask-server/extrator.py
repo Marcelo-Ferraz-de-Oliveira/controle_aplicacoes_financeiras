@@ -78,12 +78,14 @@ def str_to_br_currency(string):
   return float(string)
 
 def us_currency_to_float(n):
+  print(n)
   #Write description
   #Números com 2 ou mais pontos (pandas vai converter pra string)
   if type(n) == str:
     return float(n.replace('.',''))
   #Números com 1 ponto
-  elif n == int(n):
+  elif n >= 100: return float(n)
+  elif str(n) == str(int(n)): #ARRUMAR PARA NÚMEROS REDONDOS 
     return float(n)
   else: 
     return float(n*1000)
@@ -165,12 +167,12 @@ def extrair_data(file_to_open, passwd, corretora, area_datas):
 def extrair_negocios(file_to_open, passwd, corretora, area_negocios): 
   #Extração dos negócios realizados
   dfs_negocios = tabula.io.read_pdf(file_to_open, stream = True, area=area_negocios, pages = 'all',relative_area= True, password = passwd)
-  if debug: print(dfs_negocios)
+  #print(dfs_negocios)
   #Exclui associações incorretas (NANs) e colunas desnecessárias, renomeia colunas e corrige os separadores numéricos
   negocios = []
   for df_negocios in dfs_negocios:
     df_negocios = df_negocios.dropna(axis=1, how='any')
-    if df_negocios['Tipo mercado'][0] == 'OPCAO DE COMPRA':
+    if df_negocios['Tipo mercado'][0] == 'OPCAO DE COMPRA' or df_negocios['Tipo mercado'][0] == 'OPCAO DE VENDA':
       df_negocios = df_negocios.drop(['Prazo','Unnamed: 0'], axis = 1)
     elif df_negocios['Tipo mercado'][0] == 'VISTA':
       pass
