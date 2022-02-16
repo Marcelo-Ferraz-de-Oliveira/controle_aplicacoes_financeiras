@@ -59,6 +59,56 @@ def get_negocios_post():
 
 #posicao = {"ABEV3": {"ativo": "ABEV3", "quantidade": 17900, "preco_medio": 14.95},
 #           "IRBR3": {"ativo": "IRBR3", "quantidade": 2600, "preco_medio": 3.64}}
+def add_negocio(posicao, negocio):
+  #print("Posicao: "+str(posicao))
+  #print("Negocio: "+str(negocio))
+  if negocio["quantidade"] == 0:
+    #Faz a soma dos custos
+    #print(posicao)
+    return posicao
+  #adição
+  #print("Negocio: "+str(negocio))
+  quantidade_temp = posicao["quantidade"]+negocio["quantidade"]
+  #Se ficou negativo, roda uma vez para zerar e a outra para abrir posição contrária
+  negocio_valor_inicial = negocio["valor_operacao"] 
+  negocio_quantidade_inicial = negocio["quantidade"]
+  if quantidade_temp*posicao["quantidade"] < 0:
+    quantidade = 0
+    negocio["valor_operacao"] = negocio["valor_operacao"] - ( negocio["valor_operacao"]/negocio["quantidade"]*(quantidade_temp-quantidade))
+    negocio["quantidade"] = negocio["quantidade"] - quantidade_temp-quantidade
+    #print("Negocio dividido: "+str(negocio["valor_operacao"]))
+  else:
+    quantidade = quantidade_temp
+  ##print(abs(quantidade) > abs(posicao["quantidade"]))
+  if abs(quantidade) > abs(posicao["quantidade"]):
+    valor = posicao["valor"]+negocio["valor_operacao"]
+    preco_medio = valor/quantidade
+    lucro = posicao["lucro"]
+    lucro_total = posicao["lucro_total"]
+  else:
+    lucro = posicao["lucro"] + (negocio["quantidade"]*posicao["preco_medio"]-negocio["valor_operacao"])
+    #print("Lucro: "+str(lucro))
+    valor = quantidade* posicao["preco_medio"]
+    preco_medio = posicao["preco_medio"] if quantidade != 0 else 0
+    if quantidade != 0:
+      lucro_total = posicao['lucro_total']
+    else:
+      lucro_total = posicao['lucro_total'] + lucro
+      lucro = 0
+  posicao_temp = {
+      "ativo": posicao['ativo'],
+      "quantidade": quantidade,
+      "preco_medio": preco_medio,
+      "valor": valor,
+      "lucro": lucro,
+      "lucro_total": lucro_total
+  }
+  negocio_temp = {"quantidade": quantidade_temp-quantidade, "valor_operacao": negocio_valor_inicial/negocio_quantidade_inicial*(quantidade_temp-quantidade)}
+  #print("Resultado: "+str(posicao_temp))
+  return add_negocio(posicao_temp, negocio_temp )
+
+
+
 posicao = {}
 
 # def custo_por_ativo(posicao,notas):
@@ -79,23 +129,30 @@ def atualizar_posicao(posicao, notas):
                 # Novo preço médio = ((ma*qa)+m)/(qa+q)
                 #print(negocio, posicao)
                 negocio["quantidade"] = negocio["quantidade"] if negocio["cv"]=="C" else -negocio["quantidade"]
-                posicao[k]['quantidade'] += negocio["quantidade"]
-                #Remove a posição se ela for zerada
-                if posicao[k]['quantidade'] == 0: 
-                    del posicao[k]
-                    continue
-                p_medio = (((posicao[k]['preco_medio']*posicao[k]['quantidade'])+negocio['valor_operacao'])/(posicao[k]['quantidade']+negocio['quantidade']))
-                posicao[k]['preco_medio'] = p_medio
-                posicao[k]['valor'] += negocio['valor_operacao']
+                negocio["valor_operacao"] = negocio["valor_operacao"] if negocio["cv"]=="C" else -negocio["valor_operacao"]
+                #print("Negócio original: "+str(negocio))
+                negocio["valor_operacao"] += nota["custos"]["total"]*negocio['custo_proporcional']
+                posicao[negocio["codigo"]] = add_negocio(posicao[negocio["codigo"]],negocio)
+                #print(posicao)
             else:
                 negocio["quantidade"] = negocio["quantidade"] if negocio["cv"]=="C" else -negocio["quantidade"]
-                posicao[negocio["codigo"]]={
+                negocio["valor_operacao"] = negocio["valor_operacao"] if negocio["cv"]=="C" else -negocio["valor_operacao"]
+                valor = negocio["valor_operacao"] + nota["custos"]["total"]*negocio['custo_proporcional']
+                preco_medio = valor/negocio["quantidade"]
+                posicao[ negocio["codigo"]] = {
                     "ativo": negocio["codigo"],
                     "quantidade": negocio["quantidade"],
-                    "preco_medio": negocio["valor_operacao"]/negocio["quantidade"],
-                    "valor": negocio["valor_operacao"]}
-    print(posicao)
+                    "valor": valor,
+                    "preco_medio": preco_medio,
+                    "lucro": 0,
+                    "lucro_total": 0
+                }
+        
+                #print(posicao)
     return posicao
+
+
+
 
 @app.route('/somarnotas', methods=['POST'])
 def set_somarnotas():
@@ -107,3 +164,6 @@ def set_somarnotas():
 @app.route('/posicao', methods=['POST'])
 def get_posicao():
     return json.dumps(posicao)
+
+if __name__ == "__main__":
+    app.run()
