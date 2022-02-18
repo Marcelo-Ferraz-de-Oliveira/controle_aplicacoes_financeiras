@@ -19,10 +19,15 @@ git clone https://github.com/Marcelo-Ferraz-de-Oliveira/Controle-aplicacoes-fina
 <p><code>
 cd Controle-aplicacoes-financeiras
 </code></p>
+<p><code>
+chmod +x setup.sh
+</code></p>
 
 <p><code>
-sudo ./setup.sh
+./setup.sh
 </code></p>
+
+Acesse em um navegador no endereço <code>http://localhost:3000</code>
 
 
 
