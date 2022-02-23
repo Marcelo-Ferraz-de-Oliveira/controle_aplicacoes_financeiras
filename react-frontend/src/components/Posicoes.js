@@ -27,6 +27,7 @@ const Posicoes = ({ posicoes }) => {
           <Container fluid="sm" className="bg-light card p-1 px-3">
             <h6>Ativo: {posicao.ativo}</h6>
             <h6>Quantidade: {posicao.quantidade}</h6>
+            <h6>Vencimento: {posicao.prazo}</h6>
             <h6>
               Preço médio: R$
               {toBR(posicao.preco_medio)}

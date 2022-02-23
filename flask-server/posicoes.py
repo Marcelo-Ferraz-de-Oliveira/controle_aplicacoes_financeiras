@@ -31,6 +31,7 @@ def add_negocio(posicao, negocio):
   posicao_temp = {
       "ativo": posicao['ativo'],
       "quantidade": quantidade,
+      "prazo": posicao['prazo'],
       "preco_medio": preco_medio,
       "valor": valor,
       "lucro": lucro,
@@ -64,6 +65,7 @@ def atualizar_posicao(posicao, notas):
                 posicao[ negocio["codigo"]] = {
                     "ativo": negocio["codigo"],
                     "quantidade": negocio["quantidade"],
+                    "prazo": negocio["prazo"],
                     "valor": valor,
                     "preco_medio": preco_medio,
                     "lucro": 0,
@@ -71,3 +73,7 @@ def atualizar_posicao(posicao, notas):
                 }
         
     return posicao
+
+def zerar_opcoes_expiradas(posicao):
+  #Implementa zeragem de opções expiradas pelo vencimento (posicao.prazo)
+  pass
