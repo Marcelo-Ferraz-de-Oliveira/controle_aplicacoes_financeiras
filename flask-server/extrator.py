@@ -60,7 +60,7 @@ import tabula
 import pandas as pd
 import json
 from tradutor import nome_pregao_to_codigo
-from functools import reduce
+import re
 
 def traduzir_acao(string):
   return 
@@ -146,11 +146,11 @@ def organizar(datas, negocios, custos):
     var.append(datas[n][0])
   return var
 
-def extrair_data(file_to_open, passwd, corretora, area_datas):
+def extrair_data(file_to_open, passwd, corretora, area_datas, columns_data):
 
   #Extração do número da nota, folha e data
-  dfs_data = tabula.io.read_pdf(file_to_open, stream = True, area=area_datas, pages = 'all',relative_area= True, password = passwd)
-  if debug: print(dfs_data)
+  dfs_data = tabula.io.read_pdf(file_to_open, stream = True, area=area_datas, pages = 'all',relative_area= True, password = passwd, columns=columns_data)
+  #print(dfs_data)
   #Correção e mudança de nome dos campos
   datas = []
   for df_data in dfs_data:
@@ -158,34 +158,31 @@ def extrair_data(file_to_open, passwd, corretora, area_datas):
       df_data = df_data[['Nr. nota','Unnamed: 0','Data pregão']]
     df_data.columns = ['nota','folha','data']
     df_data['corretora'] = corretora
-    #df_data = data.reset_index()
     datas.append(df_data.to_dict(orient='records'))
   if debug: print(datas)
   return datas
 
-def extrair_negocios(file_to_open, passwd, corretora, area_negocios): 
+def extrair_negocios(file_to_open, passwd, corretora, area_negocios, columns_negocios=[0]): 
+  
+  RE_FINDALL_NEGOCIO_STRING = r'^(.{1} )?(\d{1}-[A-Z]+) (\w{1}) (OPCAO [A-Z ]+|VISTA) (\d\d\/\d\d)? ?(.*) (.{1} )?([\d\,\.]+) ([\d\,\.]+) ([\d\,\.]+) (.$)'
   #Extração dos negócios realizados
-  dfs_negocios = tabula.io.read_pdf(file_to_open, stream = True, area=area_negocios, pages = 'all',relative_area= True, password = passwd)
-  #print(dfs_negocios)
-  #Exclui associações incorretas (NANs) e colunas desnecessárias, renomeia colunas e corrige os separadores numéricos
+  dfs_negocios = tabula.io.read_pdf(file_to_open, stream = True, area=area_negocios, pages = 'all',relative_area= True, password = passwd, columns=columns_negocios)
+  #Usa a expressão regular para dividir os campos, insere no Dataframe e calcula outras colunas
   negocios = []
   for df_negocios in dfs_negocios:
-    df_negocios = df_negocios.dropna(axis=1, how='any')
-    if df_negocios['Tipo mercado'][0] == 'OPCAO DE COMPRA' or df_negocios['Tipo mercado'][0] == 'OPCAO DE VENDA':
-      df_negocios = df_negocios.drop(['Prazo','Unnamed: 0'], axis = 1)
-    elif df_negocios['Tipo mercado'][0] == 'VISTA':
-      pass
-    else: continue
-    df_negocios.columns = ['negociacao','cv','tipo_mercado','nome_pregao','quantidade','preco','valor_operacao','dc']
-    #df_negocios = df_negocios.reset_index()
-    df_negocios = fix_sep_negocios(df_negocios)
+    list_negocios = []
+    for negocio in df_negocios.iloc[:,1]:
+      list_negocios.extend(re.findall(RE_FINDALL_NEGOCIO_STRING,negocio.replace(".","").replace(",",".")))
+    df_negocios = pd.DataFrame(list_negocios)
+    df_negocios.columns = ['q','negociacao','cv','tipo_mercado','prazo','nome_pregao','obs','quantidade','preco','valor_operacao','dc']
+    df_negocios[['quantidade','preco','valor_operacao']] = df_negocios[['quantidade','preco','valor_operacao']].astype(float)
     df_negocios['codigo'] = df_negocios['nome_pregao'].apply(nome_pregao_to_codigo)
-    #calcula o percentual do custo
+    #calcula o peso percentual nos custos de corretagem
     df_negocios['custo_proporcional'] = df_negocios['valor_operacao'].apply(lambda x: abs(x))/sum(df_negocios['valor_operacao'].apply(lambda x: abs(x)))
     df_negocios = df_negocios.reset_index()
-    #print(df_negocios)
     negocios.append(list(df_negocios.to_dict(orient='index').values()))
   return negocios
+
 
 def extrair_custos(file_to_open, passwd, corretora, area_custos, columns_custos, campos):
  
@@ -222,7 +219,11 @@ def extrair_dados(file_to_open, passwd):
   #Seleciona as áreas de análise do PDF para cada corretora
   if corretora in ('Clear','XP'):
     area_datas = [0,70,8,100]
+    colunas_datas = [465,500]
     area_negocios = [28,0,53,100]
+    #colunas_negocios = [40,85,101,160,193,305,360,410,460,540]
+    colunas_negocios = [0]
+    
     area_custos = [53,50,95,100]
     colunas_custos=[450,550,600]
     campos_custos = [2,4,6,9,12,18]
@@ -237,8 +238,8 @@ def extrair_dados(file_to_open, passwd):
 
 
   #Extração
-  datas = extrair_data(file_to_open, passwd, corretora, area_datas)
-  negocios = extrair_negocios(file_to_open,passwd, corretora, area_negocios)
+  datas = extrair_data(file_to_open, passwd, corretora, area_datas, colunas_datas)
+  negocios = extrair_negocios(file_to_open,passwd, corretora, area_negocios, colunas_negocios)
   custos = extrair_custos(file_to_open,passwd, corretora, area_custos, colunas_custos, campos_custos)
   
   return organizar(
