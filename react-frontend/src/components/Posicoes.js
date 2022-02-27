@@ -36,14 +36,11 @@ const Posicoes = ({ posicoes }) => {
               Valor: R$
               {toBR(posicao.valor)}
             </h6>
-            <h6>
-              Lucro atual: R$
-              {toBR(posicao.lucro)}
-            </h6>
-            <h6>
-              Lucro total: R$
-              {toBR(posicao.lucro_total)}
-            </h6>
+            {Object.entries(posicao.lucro).map(([data, lucro]) => (
+              <h6>
+                Lucro no dia {data}: {toBR(lucro)}
+              </h6>
+            ))}
           </Container>
         </Stack>
       ))}
