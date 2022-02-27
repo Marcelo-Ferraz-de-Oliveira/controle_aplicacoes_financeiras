@@ -50,12 +50,7 @@ Será gerado um json no seguinte formato:
     }
   }
 ]
-
-
 """
-
-#!pip install tabula-py
-#!apt install default-jre
 import tabula
 import pandas as pd
 import json
@@ -64,7 +59,6 @@ import re
 
 def traduzir_acao(string):
   return 
-
 
 def str_to_br_currency(string):
   #Write description
@@ -78,7 +72,6 @@ def str_to_br_currency(string):
   return float(string)
 
 def us_currency_to_float(n):
-  #Write description
   #Números com 2 ou mais pontos (pandas vai converter pra string)
   if type(n) == str:
     return float(n.replace('.',''))
@@ -97,13 +90,11 @@ def fix_sep_negocios(df):
   return word_df
 
 def fix_sep_custos(df):
-#Write description
   word_df = df.copy()
   word_df['valor'] = word_df['valor'].apply(str_to_br_currency)
   return word_df
 
 def definir_corretora(file_to_open, passwd):
-# Write description
 # Verifica qual o nome da corretora no cabeçalho da nota
   area_header = [0,0,28,50]
   try:
@@ -124,33 +115,29 @@ def definir_corretora(file_to_open, passwd):
 debug = False
 
 def organizar(datas, negocios, custos):
-# """
-# Organiza cada data com seus respectivos negócios e planilhas de custos
-# """
   if not len(datas) == len(negocios) == len(custos):
-    raise ValueError("Datas, negócios e custos em quantidades diferentes. Os dados não foram extraídos corretamente!")  
-  var = []
-  #print(datas)
-  for n in range(0,len(datas)):
-    if debug: print([datas[n],negocios[n], custos[n]])
-    #Cria um resumo de negócios com os ativos e a soma dos negócios
-    # resumo = pd.DataFrame.from_dict(negocios[n])
-    # resumos = []
-    # for c in resumo['Código'].unique():
-    #   resumos.append(resumo[resumo["Código"] == c])
-    # for k, _ in enumerate(resumos):
-    #   resumos[k] = resumos[k][["Código","Valor Operação"]]
-    #A variável datas contém o cabeçalho da nota de corretagem
-    #A ela vai ser acrescentada os negocios e os custos
-    datas[n][0].update({'negocios': negocios[n], 'custos': custos[n][0]})
-    var.append(datas[n][0])
-  return var
+    raise IndexError("Datas, negócios e custos em quantidades diferentes. Os dados não foram extraídos corretamente!")  
+  notas = []
+  #Verifica se há notas com várias páginas
+  #Compara a nota com a nota anterior e, se o código for igual "campo nota"
+  #agrupa seus negócios e mantém apenas a última página (a que possui a soma dos custos) 
+  for n, _ in enumerate(datas):
+    #Verifica se não é o primeiro item
+    if datas[n-1:n]:
+      if datas[n]['nota'] == datas[n-1]['nota']:
+        negocios[n].extend(negocios[n-1])
+        del negocios[n-1]
+        del custos[n-1]
+        del datas[n-1]
+  #Monta o dicionário com os dados de cada nota e seus negócios e custos correspondentes
+  for n, _ in enumerate(datas):        
+    datas[n].update({'negocios': negocios[n], 'custos': custos[n]})
+    notas.append(datas[n])
+  return notas
 
 def extrair_data(file_to_open, passwd, corretora, area_datas, columns_data):
-
   #Extração do número da nota, folha e data
   dfs_data = tabula.io.read_pdf(file_to_open, stream = True, area=area_datas, pages = 'all',relative_area= True, password = passwd, columns=columns_data)
-  #print(dfs_data)
   #Correção e mudança de nome dos campos
   datas = []
   for df_data in dfs_data:
@@ -158,7 +145,7 @@ def extrair_data(file_to_open, passwd, corretora, area_datas, columns_data):
       df_data = df_data[['Nr. nota','Unnamed: 0','Data pregão']]
     df_data.columns = ['nota','folha','data']
     df_data['corretora'] = corretora
-    datas.append(df_data.to_dict(orient='records'))
+    datas.extend(df_data.to_dict(orient='records'))
   if debug: print(datas)
   return datas
 
@@ -185,7 +172,6 @@ def extrair_negocios(file_to_open, passwd, corretora, area_negocios, columns_neg
 
 
 def extrair_custos(file_to_open, passwd, corretora, area_custos, columns_custos, campos):
- 
     #Extração da planilha de custos da nota
     dfs_custos = tabula.io.read_pdf(file_to_open, stream = True, area=area_custos, pages = 'all',relative_area= True, password = passwd, columns=columns_custos)
     if debug: print(dfs_custos)
@@ -200,13 +186,10 @@ def extrair_custos(file_to_open, passwd, corretora, area_custos, columns_custos,
       df_custos = fix_sep_custos(df_custos)
       df_custos = df_custos.transpose()
       df_custos['total'] = sum(set(df_custos.loc['valor'].values))
-      custos.append(df_custos.to_dict(orient='records'))
+      custos.extend(df_custos.to_dict(orient='records'))
     return custos
 
 def extrair_dados(file_to_open, passwd):
-  # """
-  # Write description
-  # """ 
   #Função principal que retorna uma lista de dataframes ou jsons com
   #planilha de cabeçalho, negócios e custos de cada nota de corretagem 
 
@@ -235,8 +218,6 @@ def extrair_dados(file_to_open, passwd):
     campos_custos = [2,4,6,9,11,16]
   else:
     raise ValueError("Corretora não suportada"+corretora)
-
-
   #Extração
   datas = extrair_data(file_to_open, passwd, corretora, area_datas, colunas_datas)
   negocios = extrair_negocios(file_to_open,passwd, corretora, area_negocios, colunas_negocios)
@@ -247,9 +228,6 @@ def extrair_dados(file_to_open, passwd):
     negocios,
     custos)
 
-
-
 if __name__ == "__main__":
   print(extrair_dados("/home/marcelo/Documentos/controle-aplicações-financeiras/content/nota-de-corretagem-clear-multiplas-paginas.pdf", "007"))
-  
   
