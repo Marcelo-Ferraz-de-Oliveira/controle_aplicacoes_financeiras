@@ -1,10 +1,10 @@
-from extrator import extrair_dados
+from webapp.extrator import extrair_dados
 import json
 from flask import Flask, request
 import string
 import random
 from os import remove
-from posicoes import atualizar_posicao
+from webapp.posicoes import atualizar_posicao
 
 
 app = Flask(__name__)

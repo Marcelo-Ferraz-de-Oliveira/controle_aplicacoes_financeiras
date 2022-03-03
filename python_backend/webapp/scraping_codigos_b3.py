@@ -24,7 +24,6 @@ Import do selenium e adição dos argumentos necessários para o chromedriver ro
 from time import sleep
 import pandas as pd
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 import json
 
 url_stock = 'https://sistemaswebb3-listados.b3.com.br/listedCompaniesPage/search?language=pt-br'
