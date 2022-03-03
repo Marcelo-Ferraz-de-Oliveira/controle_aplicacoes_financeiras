@@ -5,6 +5,7 @@ from builtins import ValueError
 import json
 import re
 import pandas as pd
+import os
 
 
 
@@ -52,9 +53,10 @@ def encontrar_codigo(nome_pregao, re_string, codigos_b3, codigos_b3_tipos):
 #Função principal
 def nome_pregao_to_codigo(string):
     #Carrega os JSONs com os códigos de negociação
-    with open('codigos_b3.json','r') as f:
+    dirname = os.path.dirname(__file__)
+    with open(os.path.join(dirname,'codigos_b3.json'),'r') as f:
         codigos_b3 = json.load(f)['Codigo']
-    with open('codigos_b3_tipos.json','r') as f:
+    with open(os.path.join(dirname,'codigos_b3_tipos.json'),'r') as f:
         codigos_b3_tipos = json.load(f)['TckrSymb']
     #Cria a string de busca de sufixo
     RE_STRING = construir_re_string(codigos_b3_tipos)

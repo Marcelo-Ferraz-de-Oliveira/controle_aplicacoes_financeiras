@@ -54,7 +54,7 @@ Será gerado um json no seguinte formato:
 import tabula
 import pandas as pd
 import json
-from tradutor import nome_pregao_to_codigo
+from webapp.tradutor import nome_pregao_to_codigo
 import re
 
 def traduzir_acao(string):
@@ -62,7 +62,7 @@ def traduzir_acao(string):
 
 def str_to_br_currency(string):
   #Write description
-  if type(string) != type('string'):
+  if type(string) is not str:
     raise ValueError('Não foi passada uma string para conversão em moeda!')
   string = string[::-1]
   string = string.replace('.','')
@@ -70,25 +70,7 @@ def str_to_br_currency(string):
   string = string.replace(',','')
   string = string[::-1]
   return float(string)
-
-def us_currency_to_float(n):
-  #Números com 2 ou mais pontos (pandas vai converter pra string)
-  if type(n) == str:
-    return float(n.replace('.',''))
-  #Números com 1 ponto
-  elif n >= 100: return float(n)
-  elif str(n) == str(int(n)): #ARRUMAR PARA NÚMEROS REDONDOS 
-    return float(n)
-  else: 
-    return float(n*1000)
-
-def fix_sep_negocios(df):
-  word_df = df.copy()
-  word_df['preco'] = word_df['preco'].apply(str_to_br_currency)
-  word_df['valor_operacao'] = word_df['valor_operacao'].apply(str_to_br_currency)
-  word_df['quantidade'] = word_df['quantidade'].apply(us_currency_to_float)
-  return word_df
-
+  
 def fix_sep_custos(df):
   word_df = df.copy()
   word_df['valor'] = word_df['valor'].apply(str_to_br_currency)
@@ -228,6 +210,4 @@ def extrair_dados(file_to_open, passwd):
     negocios,
     custos)
 
-if __name__ == "__main__":
-  print(extrair_dados("/home/marcelo/Documentos/controle-aplicações-financeiras/content/nota-de-corretagem-clear-multiplas-paginas.pdf", "007"))
   

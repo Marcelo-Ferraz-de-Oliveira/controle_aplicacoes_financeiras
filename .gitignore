@@ -6,6 +6,8 @@ __pycache__/
 *.old
 venv/
 Instruments*
+.pytest*
+.vscode*
 
 # dependencies
 .pnp
