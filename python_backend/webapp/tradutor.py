@@ -4,13 +4,8 @@
 from builtins import ValueError
 import json
 import re
-import pandas as pd
 import os
 
-
-
-
-#print(codigos_b3)
 
 #Função para construir string da expressão regular
 #A expressão buscará pela presença de qualquer um dos sufixos do Nome do Pregão
@@ -63,13 +58,6 @@ def nome_pregao_to_codigo(string):
     string = string.replace(" ", "")
     return encontrar_codigo(string, RE_STRING, codigos_b3, codigos_b3_tipos)
 
-if __name__ == "__main__":
-    string = ('ABEVB161ON 15,62', 'AMBEV S/AON', 'IRBRB330ON 3,30','ISHARE SP500CI','PETROBRASPN', 'USIMINASPNA')
-    r_esperado = ['ABEVB161','ABEV3','IRBRB330','IVVB11','PETR4','USIM5']
-    resultado = []
-    for s in string:
-        resultado.append(nome_pregao_to_codigo(s))
-    #print(resultado)
-    print("Teste passou? R: "+ str(resultado == r_esperado))
+
     
     
