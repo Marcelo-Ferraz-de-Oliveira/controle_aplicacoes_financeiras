@@ -185,7 +185,7 @@ def extrair_custos(file_to_open, passwd, corretora, area_custos, columns_custos,
       df_custos = df_custos.set_index('custo').drop('cd', axis=1)
       df_custos = fix_sep_custos(df_custos)
       df_custos = df_custos.transpose()
-      df_custos['total'] = sum(set(df_custos.loc['valor'].values))
+      df_custos['total'] = round(sum(set(df_custos.loc['valor'].values)),2)
       custos.extend(df_custos.to_dict(orient='records'))
     return custos
 
