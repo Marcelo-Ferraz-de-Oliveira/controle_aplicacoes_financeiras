@@ -23,7 +23,6 @@ const Loader = ({ fetchData, bText }) => {
     let data = new FormData();
     let x = 0;
     for (let file of files) {
-      console.log(file);
       data.append(`file${x}`, file);
       x++;
     }
