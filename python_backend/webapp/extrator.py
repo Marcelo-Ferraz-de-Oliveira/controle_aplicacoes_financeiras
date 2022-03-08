@@ -57,6 +57,7 @@ import pandas as pd
 import json
 from webapp.tradutor import nome_pregao_to_codigo
 import re
+import copy
 
 
 def extrair_dados(file_to_open, passwd=""):
@@ -196,7 +197,12 @@ def agrupar_paginas(headers: list, negocios: list, custos: list) -> tuple:
     for n, _ in enumerate(headers):
         if headers[n-1:n]:
             if headers[n]['nota'] == headers[n-1]['nota']:
-                negocios[n].extend(negocios[n-1])
+                #Reindex the index keys to continue after last key of previous negocios
+                for key, _ in enumerate(negocios[n]):
+                    negocios[n][key]['index'] += negocios[n-1][-1]['index'] + 1
+                negocios[n-1].extend(negocios[n])
+                negocios[n] = negocios[n-1]
+                print(negocios[n])
                 del negocios[n-1]
                 del custos[n-1]
                 del headers[n-1]
