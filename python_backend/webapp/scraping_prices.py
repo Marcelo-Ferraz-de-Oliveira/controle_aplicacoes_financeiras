@@ -1,6 +1,5 @@
 from time import sleep
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
+from webapp.headless_webdriver import get_headless_selenium_webdriver, Keys
 
 """
 
@@ -26,12 +25,7 @@ def get_b3_prices(symbols_list, query_interval = 5, load_timeout=30):
   finally:
     wd.close()
     
-def get_headless_selenium_webdriver():
-  options = webdriver.ChromeOptions()
-  options.add_argument('--headless')
-  options.add_argument('--no-sandbox')
-  options.add_argument('--disable-dev-shm-usage')
-  return webdriver.Chrome('chromedriver',options=options)
+
 
 def get_price(symbol, wd, iter_limit = 100):
   #Get symbol price from selenium webdriver opened in B3 price consulting page
@@ -52,14 +46,5 @@ def get_price(symbol, wd, iter_limit = 100):
     price = wd.find_element('id', ID_PRICE).text.replace("_","")
     if price: return price
     sleep(0.1)
-  return ""
+  return "timeout"
 
-if __name__ == "__main__":
-  ativo = ("ABEV3","ABEVC157","PETR4","BBDC4","BBAS3","ITUB4")
-  preco =  get_b3_prices(ativo,5)
-  for _ in range(5):
-    cotacao = next(preco)
-    if not cotacao: 
-      print("Erro ao obter as cotações")
-      break
-    print(cotacao)
