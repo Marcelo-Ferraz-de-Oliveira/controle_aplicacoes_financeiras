@@ -1,16 +1,6 @@
 import React from "react";
-import { Container, Stack } from "react-bootstrap";
-import styled from "styled-components";
-const Layout = styled.div`
-  stack {
-    background-color: #fff;
-    margin-top: 2px;
-    margin-bottom: 2px;
-    &:hover {
-      background-color: #fff;
-    }
-  }
-`;
+import { Container, Card, ListGroup } from "react-bootstrap";
+import Section from "./Section";
 
 const toBR = (str) => {
   return str.toLocaleString("pt-br", {
@@ -20,31 +10,33 @@ const toBR = (str) => {
 
 const Posicoes = ({ posicoes }) => {
   return (
-    <Container className="bg-warning text-dark card p-3 justify-content-md-center">
-      <h4>Posição atual</h4>
-      {Object.values(posicoes).map((posicao) => (
-        <Stack gap={2}>
-          <Container fluid="sm" className="bg-light card p-1 px-3">
-            <h6>Ativo: {posicao.ativo}</h6>
-            <h6>Quantidade: {posicao.quantidade}</h6>
-            <h6>Vencimento: {posicao.prazo}</h6>
-            <h6>
-              Preço médio: R$
-              {toBR(posicao.preco_medio)}
-            </h6>
-            <h6>
-              Valor: R$
-              {toBR(posicao.valor)}
-            </h6>
-            {Object.entries(posicao.lucro).map(([data, lucro]) => (
-              <h6>
-                Lucro no dia {data}: {toBR(lucro)}
-              </h6>
-            ))}
+    <Section bg="info" text="light" flex="lg">
+      <Container className="row g-4">
+        <h4 className="text-center">Posição atual</h4>
+        {Object.values(posicoes).map((posicao) => (
+          <Container className="col-md-6 col-lg-3">
+            <ListGroup>
+              <ListGroup.Item>Ativo: {posicao.ativo}</ListGroup.Item>
+              <ListGroup.Item>Quantidade: {posicao.quantidade}</ListGroup.Item>
+              <ListGroup.Item>Vencimento: {posicao.prazo}</ListGroup.Item>
+              <ListGroup.Item>
+                Preço médio: R$
+                {toBR(posicao.preco_medio)}
+              </ListGroup.Item>
+              <ListGroup.Item>
+                Valor: R$
+                {toBR(posicao.valor)}
+              </ListGroup.Item>
+              {Object.entries(posicao.lucro).map(([data, lucro]) => (
+                <ListGroup.Item>
+                  Lucro no dia {data}: {toBR(lucro)}
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
           </Container>
-        </Stack>
-      ))}
-    </Container>
+        ))}
+      </Container>
+    </Section>
   );
 };
 

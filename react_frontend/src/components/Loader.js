@@ -1,18 +1,7 @@
 import React from "react";
 import { Form, Button } from "react-bootstrap";
 import { useState } from "react";
-import styled from "styled-components";
-
-const Layout = styled.div`
-  form {
-    background-color: #fff;
-    margin-top: 2px;
-    margin-bottom: 2px;
-    &:hover {
-      background-color: #fff;
-    }
-  }
-`;
+import Section from "./Section";
 
 const Loader = ({ fetchData, bText }) => {
   const [files, setFiles] = useState("");
@@ -31,9 +20,9 @@ const Loader = ({ fetchData, bText }) => {
   };
 
   return (
-    <Layout className="bg-light card p-3">
-      <h4>Importar nota de negociação</h4>
-      <Form onSubmit={onSubmit} className="d-grid bg-light">
+    <Section bg="primary" text="light" flex="">
+      <Form onSubmit={onSubmit}>
+        <h4>Importar nota de negociação</h4>
         <Form.Group className="mb-3" controlId="notadecorretagem">
           <Form.Label>Nota de negociação (PDF)</Form.Label>
           <Form.Control
@@ -54,11 +43,11 @@ const Loader = ({ fetchData, bText }) => {
             onChange={(e) => setPwd(e.target.value)}
           />
         </Form.Group>
-        <Button variant="primary" type="submit" size="lg">
+        <Button variant="success" type="submit" size="lg">
           {bText}
         </Button>
       </Form>
-    </Layout>
+    </Section>
   );
 };
 

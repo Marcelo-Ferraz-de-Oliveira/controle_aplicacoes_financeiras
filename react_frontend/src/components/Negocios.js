@@ -1,62 +1,58 @@
 import { Container, Accordion, Badge } from "react-bootstrap";
+import Section from "./Section";
 
 const Negocios = ({ negocios }) => {
   return (
-    <Container className="negocios">
-      <Accordion defaultActiveKey="0" flush alwaysOpen>
-        {negocios.map((negocio) => {
-          return (
-            <Accordion.Item eventKey={negocio.index}>
-              <Accordion.Header> {negocio.index + 1}º Negocio</Accordion.Header>
-
-              <Accordion.Body>
-                <h6>
-                  Mercado Negociado:{" "}
-                  <Badge bg="info">{negocio.negociacao}</Badge>
-                </h6>
-                <h6>
-                  Compra ou venda: <Badge bg="info">{negocio.cv}</Badge>
-                </h6>
-                <h6>
-                  Categoria do ativo:{" "}
-                  <Badge bg="info">{negocio.tipo_mercado}</Badge>
-                </h6>
-                <h6>
-                  Nome do ativo: <Badge bg="info">{negocio.nome_pregao}</Badge>
-                </h6>
-                <h6>
-                  Código do ativo: <Badge bg="info">{negocio.codigo}</Badge>
-                </h6>
-                <h6>
-                  Quantidade: <Badge bg="info">{negocio.quantidade}</Badge>
-                </h6>
-                <h6>
-                  Valor unitário:{" "}
-                  <Badge bg="info">
-                    R$
-                    {negocio.preco.toLocaleString("pt-br", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </Badge>
-                </h6>
-                <h6>
-                  Valor total:{" "}
-                  <Badge bg="info">
-                    R$
-                    {negocio.valor_operacao.toLocaleString("pt-br", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </Badge>
-                </h6>
-                <h6>
-                  Coberto/Descoberto: <Badge bg="info">{negocio.dc}</Badge>
-                </h6>
-              </Accordion.Body>
-            </Accordion.Item>
-          );
-        })}
-      </Accordion>
-    </Container>
+    <Accordion defaultActiveKey="0" flush alwaysOpen>
+      {negocios.map((negocio) => {
+        return (
+          <Accordion.Item eventKey={negocio.index}>
+            <Accordion.Header> {negocio.index + 1}º Negocio</Accordion.Header>
+            <Accordion.Body>
+              <h6>
+                Mercado Negociado: <b>{negocio.negociacao}</b>
+              </h6>
+              <h6>
+                Compra ou venda: <b>{negocio.cv}</b>
+              </h6>
+              <h6>
+                Categoria do ativo: <b>{negocio.tipo_mercado}</b>
+              </h6>
+              <h6>
+                Nome do ativo: <b>{negocio.nome_pregao}</b>
+              </h6>
+              <h6>
+                Código do ativo: <b>{negocio.codigo}</b>
+              </h6>
+              <h6>
+                Quantidade: <b>{negocio.quantidade}</b>
+              </h6>
+              <h6>
+                Valor unitário:{" "}
+                <b>
+                  R$
+                  {negocio.preco.toLocaleString("pt-br", {
+                    minimumFractionDigits: 2,
+                  })}
+                </b>
+              </h6>
+              <h6>
+                Valor total:{" "}
+                <b>
+                  R$
+                  {negocio.valor_operacao.toLocaleString("pt-br", {
+                    minimumFractionDigits: 2,
+                  })}
+                </b>
+              </h6>
+              <h6>
+                Coberto/Descoberto: <b>{negocio.dc}</b>
+              </h6>
+            </Accordion.Body>
+          </Accordion.Item>
+        );
+      })}
+    </Accordion>
   );
 };
 

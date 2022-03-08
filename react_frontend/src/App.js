@@ -3,15 +3,20 @@ import { useState, useEffect } from "react";
 import Notas from "./components/Notas";
 import Loader from "./components/Loader";
 import { Container } from "react-bootstrap";
-import { Layout } from "./components/Layout";
-import styled from "styled-components";
 import Posicoes from "./components/Posicoes";
+import Profit from "./components/Profit";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import ModalError from "./components/ModalError";
+import Section from "./components/Section";
 
 const App = () => {
   const [data, setData] = useState([]);
   const [posicoes, setPosicoes] = useState([]);
   const [bText, setBText] = useState("Processar nota de negociação");
-  const [cp, setCp] = useState({ Notas: true, Posicoes: true, Loader: true });
+  const [profit, setProfit] = useState({});
+  const [monthProfit, setMonthProfit] = useState(0);
+  const [isError, setIsError] = useState("");
 
   useEffect(() => {
     //Fetch Tasks
@@ -21,6 +26,18 @@ const App = () => {
       });
       const data = await res.json();
       setPosicoes(data);
+
+      const resProfit = await fetch("/lucro", {
+        method: "POST",
+      });
+      const jsonProfit = await resProfit.json();
+      setProfit(jsonProfit);
+
+      const resMonthProfit = await fetch("/monthprofit", {
+        method: "POST",
+      });
+      const jsonMonthProfit = await resMonthProfit.json();
+      setMonthProfit(jsonMonthProfit);
     };
     fetchTasks();
   }, []);
@@ -31,39 +48,73 @@ const App = () => {
       method: "POST",
       body: body,
     });
-    const content = await res.json();
-    setData([...data, ...content]);
+    if (res && res.status === 200) {
+      const content = await res.json();
+      setData([...data, ...content]);
+    } else {
+      const error = await res.text();
+      console.log(error);
+      setIsError(error);
+    }
     setBText("Processar nota de negociação");
-    //return content;
   };
 
   const somarNotas = async (notas) => {
-    // alert(notas[0]["nr. nota"]);
     let data = new FormData();
     data.append("nota", JSON.stringify(notas));
     const res = await fetch("/somarnotas", {
       method: "POST",
       body: data,
     });
-    const content = await res.json();
-    setPosicoes(content);
-    setData([]);
+    if (res && res.status === 200) {
+      const content = await res.json();
+      setPosicoes(content);
+      setData([]);
+      let profitForm = new FormData();
+      profitForm.append("position", JSON.stringify(content));
+      const profitRes = await fetch("/somarlucro", {
+        method: "POST",
+        body: profitForm,
+      });
+      const profitData = await profitRes.json();
+      setProfit(profitData);
+    } else {
+      const error = await res.text();
+      console.log(error);
+      setIsError(error);
+    }
+
+    const resMonthProfit = await fetch("/monthprofit", {
+      method: "POST",
+    });
+    const jsonMonthProfit = await resMonthProfit.json();
+    setMonthProfit(jsonMonthProfit);
   };
 
   return (
-    <Layout>
-      <Container fluid="md" className=" mt-3 p-3">
-        <Loader fetchData={fetchData} bText={bText} />
-        {posicoes.length === 0 ? (
-          "Carregando posição..."
-        ) : (
-          <Posicoes posicoes={posicoes} />
-        )}
-        {data.length === 0
-          ? ""
-          : data && <Notas notas={data} somarNotas={somarNotas} />}
-      </Container>
-    </Layout>
+    <>
+      <Header />
+      <Loader fetchData={fetchData} bText={bText} />
+
+      {profit.length === 0 ? (
+        "Sem lucros"
+      ) : (
+        <Profit profit={profit} monthProfit={monthProfit} />
+      )}
+
+      {data.length === 0
+        ? ""
+        : data && <Notas notas={data} somarNotas={somarNotas} />}
+      {posicoes.length === 0 ? (
+        "Carregando posição..."
+      ) : (
+        <Posicoes posicoes={posicoes} />
+      )}
+      <Section></Section>
+      <Section></Section>
+      <Footer />
+      <ModalError error={isError} onHide={() => setIsError("")} />
+    </>
   );
 };
 
