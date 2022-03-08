@@ -60,13 +60,15 @@ def process_multiple_files(files, password) -> list:
     notas = []
     for file in files:
         temp_file = random_tempfile()
-        file.save(temp_file)
-        notas.extend(extrair_dados(temp_file, password))
-        remove(temp_file)
+        try:
+            file.save(temp_file)
+            notas.extend(extrair_dados(temp_file, password))
+        finally:
+            remove(temp_file)
     return notas
     
 def random_tempfile() -> str:
-    return f"/tmp/{''.join(random.choice(string.ascii_letters) for x in range(30))}"
+    return f"/tmp/nota_{''.join(random.choice(string.ascii_letters) for x in range(30))}.pdf"
 
 
 if __name__ == "__main__":
