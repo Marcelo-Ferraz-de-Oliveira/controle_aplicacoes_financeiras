@@ -1,13 +1,19 @@
 import { Container, Accordion, Badge } from "react-bootstrap";
 import Section from "./Section";
 
-const Negocios = ({ negocios }) => {
+const Negocios = ({ negocios, numNota }) => {
   return (
     <Accordion defaultActiveKey="0" flush alwaysOpen>
       {negocios.map((negocio) => {
         return (
-          <Accordion.Item eventKey={negocio.index}>
-            <Accordion.Header> {negocio.index + 1}º Negocio</Accordion.Header>
+          <Accordion.Item
+            eventKey={negocio.index}
+            key={`${numNota}_${negocio.index}`}
+          >
+            <Accordion.Header>
+              {" "}
+              {`${negocio.index + 1}º Negocio`}
+            </Accordion.Header>
             <Accordion.Body>
               <h6>
                 Mercado Negociado: <b>{negocio.negociacao}</b>

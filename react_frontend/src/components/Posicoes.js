@@ -14,7 +14,7 @@ const Posicoes = ({ posicoes }) => {
       <Container className="row g-4">
         <h4 className="text-center">Posição atual</h4>
         {Object.values(posicoes).map((posicao) => (
-          <Container className="col-md-6 col-lg-3">
+          <Container className="col-md-6 col-lg-3" key={posicao.ativo}>
             <ListGroup>
               <ListGroup.Item>Ativo: {posicao.ativo}</ListGroup.Item>
               <ListGroup.Item>Quantidade: {posicao.quantidade}</ListGroup.Item>
@@ -28,7 +28,7 @@ const Posicoes = ({ posicoes }) => {
                 {toBR(posicao.valor)}
               </ListGroup.Item>
               {Object.entries(posicao.lucro).map(([data, lucro]) => (
-                <ListGroup.Item>
+                <ListGroup.Item key={data}>
                   Lucro no dia {data}: {toBR(lucro)}
                 </ListGroup.Item>
               ))}

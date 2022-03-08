@@ -38,7 +38,7 @@ const Profit = ({ profit, monthProfit }) => {
       <Container>
         <ListGroup>
           {Object.entries(profit).map(([data, lucro]) => (
-            <ListGroup.Item>
+            <ListGroup.Item key={data}>
               Lucro no dia {data}: {toBR(lucro)}
             </ListGroup.Item>
           ))}
