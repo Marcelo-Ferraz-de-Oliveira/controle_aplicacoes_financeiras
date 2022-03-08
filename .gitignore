@@ -8,6 +8,7 @@ venv/
 Instruments*
 .pytest*
 .vscode*
+.coverage
 
 # dependencies
 .pnp
