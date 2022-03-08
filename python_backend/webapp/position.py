@@ -1,5 +1,40 @@
+from datetime import datetime, timedelta
 
-def atualizar_posicao(posicao, notas):
+class Position:
+    def __init__(self) -> None:
+        self.__position = {}
+    @property
+    def position(self) -> dict:
+        return self.__position
+    @position.setter
+    def position(self, position: dict) -> None:
+        self.__position = position
+    
+    def liquidate_expired_option(self) -> None:
+      today = datetime.now()
+      for key, pos in self.position.items():
+        if pos['prazo'] and pos['quantidade']:
+          option_date = self._get_third_fryday_next_day(self._month_year_str_to_date(pos['prazo']))
+          if option_date < today :
+            inverse_pos = {'quantidade': -pos['quantidade'], 'valor_operacao': 0}
+            self.position[key] = add_negocio(pos,inverse_pos,self._datetime_to_str_date(option_date))
+    
+    def _datetime_to_str_date(self, date: datetime) -> str:
+      return date.strftime("%d/%m/%Y")
+    
+    def _month_year_str_to_date(self, str_date: str, ) -> datetime:
+      return datetime.strptime(str_date, "%m/%y")
+    
+    def _get_third_fryday_next_day(self, date: datetime) -> datetime:
+      friday_number = 0
+      #Get the previous month last day
+      date = date.replace(day = 1) - timedelta(days=1)
+      while friday_number < 3:
+        date = date + timedelta(days=1)
+        if date.weekday() == 4: friday_number += 1
+      return date
+        
+def atualizar_posicao(posicao: dict, notas: list) -> dict:
 #Atualiza a posição atual com todos os negócios de todas as notas de corretagem processadas
   for i, nota in enumerate(notas):
       data = nota["data"]
@@ -33,7 +68,7 @@ def atualizar_posicao(posicao, notas):
 
 
 #Adiciona um negócio de nota de corretagem à posição atual
-def add_negocio(posicao, negocio, data):
+def add_negocio(posicao: dict, negocio: dict, data: str):
   lucro = {}
   if negocio["quantidade"] == 0:
     return posicao
@@ -68,18 +103,3 @@ def add_negocio(posicao, negocio, data):
   }
   negocio_temp = {"quantidade": quantidade_temp-quantidade, "valor_operacao": negocio_valor_inicial/negocio_quantidade_inicial*(quantidade_temp-quantidade)}
   return add_negocio(posicao_temp, negocio_temp, data)
-
-def assembly_posicao(ativo,quantidade,prazo,valor,preco_medio,lucro,lucro_total):
-  if type(lucro) == type(lucro_total) == dict:
-    return {
-            "ativo": ativo,
-            "quantidade": quantidade,
-            "prazo": prazo,
-            "valor": valor,
-            "preco_medio": preco_medio,
-            "lucro": lucro
-          }
-  else: raise ValueError("Lucro não é um dicionário no formato {data1:lucro1,data2:lucro2}")
-
-def zerar_opcoes_expiradas(posicao):
-  pass
