@@ -2,13 +2,11 @@ import React from "react";
 import { useState, useEffect } from "react";
 import Notas from "./components/Notas";
 import Loader from "./components/Loader";
-import { Container } from "react-bootstrap";
 import Posicoes from "./components/Posicoes";
 import Profit from "./components/Profit";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ModalError from "./components/ModalError";
-import Section from "./components/Section";
 
 const App = () => {
   const [data, setData] = useState([]);
@@ -25,7 +23,6 @@ const App = () => {
         method: "POST",
       });
       const data = await res.json();
-      console.log(data);
       setPosicoes(data);
 
       const resProfit = await fetch("/lucro", {
@@ -35,11 +32,12 @@ const App = () => {
       setProfit(jsonProfit);
 
       getMonthProfit();
+      fetchData();
     };
     fetchTasks();
   }, []);
 
-  const fetchData = async (body) => {
+  const fetchData = async (body = []) => {
     setBText("Processando...");
     const res = await fetch("/negocios", {
       method: "POST",
@@ -47,7 +45,8 @@ const App = () => {
     });
     if (res && res.status === 200) {
       const content = await res.json();
-      setData([...data, ...content]);
+      setData(content);
+      somarNotas(content);
     } else {
       const error = await res.text();
       console.log(error);
@@ -84,9 +83,7 @@ const App = () => {
     });
     if (res && res.status === 200) {
       const content = await res.json();
-      console.log(content);
       setPosicoes(content);
-      setData([]);
       updateProfit(content);
       getMonthProfit();
     } else {
@@ -116,29 +113,15 @@ const App = () => {
   };
 
   return (
-    <>
+    <div className="pb-5">
       <Header />
       <Loader fetchData={fetchData} bText={bText} />
-
-      {profit.length === 0 ? (
-        "Sem lucros"
-      ) : (
-        <Profit profit={profit} monthProfit={monthProfit} />
-      )}
-
-      {data.length === 0
-        ? ""
-        : data && <Notas notas={data} somarNotas={somarNotas} />}
-      {posicoes.length === 0 ? (
-        "Carregando posição..."
-      ) : (
-        <Posicoes posicoes={posicoes} liquitadeOption={liquidateOption} />
-      )}
-      <Section></Section>
-      <Section></Section>
+      <Profit profit={profit} monthProfit={monthProfit} />
+      <Posicoes posicoes={posicoes} liquitadeOption={liquidateOption} />
+      {data.length === 0 ? "" : data && <Notas notas={data} />}
       <Footer />
       <ModalError error={isError} onHide={() => setIsError("")} />
-    </>
+    </div>
   );
 };
 

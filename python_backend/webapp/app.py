@@ -19,7 +19,10 @@ notas: Notas = Notas()
 
 @app.route('/monthprofit', methods=['POST'])
 def get_month_profit() -> str:
-    return json.dumps(profit.get_month_profit(datetime(2022, 2, 1)))
+    # return json.dumps(profit.get_month_profit(datetime(2022, 2, 1)))
+    if request.values:
+        pass
+    return json.dumps(profit.get_month_profit(datetime.today()))
 
 @app.route('/somarlucro', methods=['POST'])
 def set_lucro() -> str:
@@ -56,7 +59,7 @@ def get_negocios_post():
                 request.files.values(), 
                 request.values['pwd']).nota)
     else:
-        return json.dumps([])
+        return json.dumps(notas.nota)
 
 @app.errorhandler(Exception)
 def handle_server_error(e):

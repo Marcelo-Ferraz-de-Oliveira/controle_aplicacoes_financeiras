@@ -1,20 +1,13 @@
 import Negocios from "./Negocios";
 import Section from "./Section";
 
-import { Container, Row, Stack, Button } from "react-bootstrap";
+import { Container } from "react-bootstrap";
 
-const Notas = ({ notas, somarNotas }) => {
+const Notas = ({ notas }) => {
   return (
     <Section>
       <Container fuid="sm">
         <h4>Notas de Negociação</h4>
-
-        <Button
-          className="btn btn-primary btn-lg btn-block"
-          onClick={() => somarNotas(notas)}
-        >
-          Somar Nota
-        </Button>
         {notas.map((nota) => (
           <Container
             fluid="sm"
