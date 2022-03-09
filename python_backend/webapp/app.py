@@ -4,8 +4,9 @@ from flask import Flask, request, jsonify
 import string
 import random
 from os import remove
-from webapp.position import Position, atualizar_posicao
+from webapp.position import Position
 from webapp.profit import Profit
+from webapp.notas import Notas
 from datetime import datetime
 
 app = Flask(__name__)
@@ -14,7 +15,7 @@ app.config['TRAP_HTTP_EXCEPTIONS']=True
 
 position: Position = Position()
 profit: Profit = Profit()
-notas = []
+notas: Notas = Notas()
 
 @app.route('/monthprofit', methods=['POST'])
 def get_month_profit() -> str:
@@ -35,7 +36,7 @@ def get_posicao() -> str:
 @app.route('/somarnotas', methods=['POST'])
 def set_somarnotas():
     if request.values:
-        position.position = atualizar_posicao(position.position, json.loads(request.values["nota"]))
+        position.atualizar_posicao(json.loads(request.values["nota"]))
         position.check_expired_options()
         profit.update_profit(position)
     return json.dumps(position.position)           
@@ -53,7 +54,7 @@ def get_negocios_post():
         return json.dumps(
             process_multiple_files(
                 request.files.values(), 
-                request.values['pwd']))
+                request.values['pwd']).nota)
     else:
         return json.dumps([])
 
@@ -61,13 +62,13 @@ def get_negocios_post():
 def handle_server_error(e):
     return str(e), 206
 
-def process_multiple_files(files, password) -> list:
+def process_multiple_files(files, password) -> Notas:
     for file in files:
         temp_file = random_tempfile()
         try:
             file.save(temp_file)
             nota = extrair_dados(temp_file, password)
-            notas.extend(nota)
+            notas.addNotas(nota)
         finally:
             remove(temp_file)
     return notas
