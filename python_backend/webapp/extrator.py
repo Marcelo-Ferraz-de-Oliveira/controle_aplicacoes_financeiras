@@ -202,7 +202,6 @@ def agrupar_paginas(headers: list, negocios: list, custos: list) -> tuple:
                     negocios[n][key]['index'] += negocios[n-1][-1]['index'] + 1
                 negocios[n-1].extend(negocios[n])
                 negocios[n] = negocios[n-1]
-                print(negocios[n])
                 del negocios[n-1]
                 del custos[n-1]
                 del headers[n-1]

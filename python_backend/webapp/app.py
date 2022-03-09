@@ -14,6 +14,7 @@ app.config['TRAP_HTTP_EXCEPTIONS']=True
 
 position: Position = Position()
 profit: Profit = Profit()
+notas = []
 
 @app.route('/monthprofit', methods=['POST'])
 def get_month_profit() -> str:
@@ -35,13 +36,19 @@ def get_posicao() -> str:
 def set_somarnotas():
     if request.values:
         position.position = atualizar_posicao(position.position, json.loads(request.values["nota"]))
-        position.liquidate_expired_option()
+        position.check_expired_options()
         profit.update_profit(position)
     return json.dumps(position.position)           
-    
+
+@app.route('/zerarposicao', methods=['POST'])
+def set_zerarposicao():
+    if request.values:
+        position.liquidate_expired_option(json.loads(request.values["code"]))
+        profit.update_profit(position)
+    return json.dumps(position.position)
+
 @app.route('/negocios', methods=['POST'])
 def get_negocios_post():
-    # try:
     if request.files:
         return json.dumps(
             process_multiple_files(
@@ -49,20 +56,18 @@ def get_negocios_post():
                 request.values['pwd']))
     else:
         return json.dumps([])
-    # except Exception as e:
-    #     return str(e), 500
 
 @app.errorhandler(Exception)
 def handle_server_error(e):
     return str(e), 206
 
 def process_multiple_files(files, password) -> list:
-    notas = []
     for file in files:
         temp_file = random_tempfile()
         try:
             file.save(temp_file)
-            notas.extend(extrair_dados(temp_file, password))
+            nota = extrair_dados(temp_file, password)
+            notas.extend(nota)
         finally:
             remove(temp_file)
     return notas

@@ -10,14 +10,30 @@ class Position:
     def position(self, position: dict) -> None:
         self.__position = position
     
-    def liquidate_expired_option(self) -> None:
-      today = datetime.now()
-      for key, pos in self.position.items():
-        if pos['prazo'] and pos['quantidade']:
-          option_date = self._get_third_fryday_next_day(self._month_year_str_to_date(pos['prazo']))
-          if option_date < today :
-            inverse_pos = {'quantidade': -pos['quantidade'], 'valor_operacao': 0}
-            self.position[key] = add_negocio(pos,inverse_pos,self._datetime_to_str_date(option_date))
+    def liquidate_expired_option(self, code: str) -> None:
+        option_date = self._get_third_fryday_next_day(self._month_year_str_to_date(self.position[code]['prazo']))
+        inverse_pos = {
+          'quantidade': -self.position[code]['quantidade'], 
+          'valor_operacao': 0
+        }
+        self.position[code] = add_negocio(
+                                self.position[code],
+                                inverse_pos,
+                                self._datetime_to_str_date(
+                                  option_date
+                                )
+                              )
+    
+    def check_expired_options(self) -> None:
+        today = datetime.now()
+        for key, pos in self.position.items():
+          if pos['prazo'] and pos['quantidade']:
+            option_date = self._get_third_fryday_next_day(self._month_year_str_to_date(pos['prazo']))
+            if option_date < today :
+              self.position[key]['expirado'] = "true"
+              continue
+          self.position[key]['expirado'] = "false"
+          
     
     def _datetime_to_str_date(self, date: datetime) -> str:
       return date.strftime("%d/%m/%Y")
@@ -62,6 +78,7 @@ def atualizar_posicao(posicao: dict, notas: list) -> dict:
                   "valor": valor,
                   "preco_medio": preco_medio,
                   "lucro": {},
+                  "expirado": "false",
               }
       
   return posicao
@@ -99,7 +116,8 @@ def add_negocio(posicao: dict, negocio: dict, data: str):
       "prazo": posicao['prazo'],
       "preco_medio": preco_medio,
       "valor": valor,
-      "lucro": lucro
+      "lucro": lucro,
+      "expirado": "false",
   }
   negocio_temp = {"quantidade": quantidade_temp-quantidade, "valor_operacao": negocio_valor_inicial/negocio_quantidade_inicial*(quantidade_temp-quantidade)}
   return add_negocio(posicao_temp, negocio_temp, data)

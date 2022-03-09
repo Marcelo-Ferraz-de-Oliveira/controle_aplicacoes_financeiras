@@ -1,5 +1,5 @@
 import React from "react";
-import { Container, Card, ListGroup } from "react-bootstrap";
+import { Container, Card, ListGroup, Button } from "react-bootstrap";
 import Section from "./Section";
 
 const toBR = (str) => {
@@ -8,7 +8,7 @@ const toBR = (str) => {
   });
 };
 
-const Posicoes = ({ posicoes }) => {
+const Posicoes = ({ posicoes, liquitadeOption }) => {
   return (
     <Section bg="info" text="light" flex="lg">
       <Container className="row g-4">
@@ -27,6 +27,22 @@ const Posicoes = ({ posicoes }) => {
                 Valor: R$
                 {toBR(posicao.valor)}
               </ListGroup.Item>
+              <ListGroup.Item>
+                Expirado: {posicao.expirado === "true" ? "sim" : "não"}
+              </ListGroup.Item>
+              {posicao.expirado === "true" ? (
+                <ListGroup.Item>
+                  <Button
+                    variant="primary"
+                    onClick={() => liquitadeOption(posicao.ativo)}
+                  >
+                    Zerar Posição
+                  </Button>
+                </ListGroup.Item>
+              ) : (
+                <></>
+              )}
+
               {Object.entries(posicao.lucro).map(([data, lucro]) => (
                 <ListGroup.Item key={data}>
                   Lucro no dia {data}: {toBR(lucro)}

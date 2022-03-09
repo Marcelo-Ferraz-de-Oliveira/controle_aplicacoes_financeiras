@@ -25,6 +25,7 @@ const App = () => {
         method: "POST",
       });
       const data = await res.json();
+      console.log(data);
       setPosicoes(data);
 
       const resProfit = await fetch("/lucro", {
@@ -33,11 +34,7 @@ const App = () => {
       const jsonProfit = await resProfit.json();
       setProfit(jsonProfit);
 
-      const resMonthProfit = await fetch("/monthprofit", {
-        method: "POST",
-      });
-      const jsonMonthProfit = await resMonthProfit.json();
-      setMonthProfit(jsonMonthProfit);
+      getMonthProfit();
     };
     fetchTasks();
   }, []);
@@ -59,6 +56,25 @@ const App = () => {
     setBText("Processar nota de negociação");
   };
 
+  const liquidateOption = async (code) => {
+    let liquidateForm = new FormData();
+    liquidateForm.append("code", JSON.stringify(code));
+    const res = await fetch("/zerarposicao", {
+      method: "POST",
+      body: liquidateForm,
+    });
+    if (res && res.status === 200) {
+      const content = await res.json();
+      setPosicoes(content);
+      updateProfit(content);
+      getMonthProfit();
+    } else {
+      const error = await res.text();
+      console.log(error);
+      setIsError(error);
+    }
+  };
+
   const somarNotas = async (notas) => {
     let data = new FormData();
     data.append("nota", JSON.stringify(notas));
@@ -68,22 +84,30 @@ const App = () => {
     });
     if (res && res.status === 200) {
       const content = await res.json();
+      console.log(content);
       setPosicoes(content);
       setData([]);
-      let profitForm = new FormData();
-      profitForm.append("position", JSON.stringify(content));
-      const profitRes = await fetch("/somarlucro", {
-        method: "POST",
-        body: profitForm,
-      });
-      const profitData = await profitRes.json();
-      setProfit(profitData);
+      updateProfit(content);
+      getMonthProfit();
     } else {
       const error = await res.text();
       console.log(error);
       setIsError(error);
     }
+  };
 
+  const updateProfit = async (content) => {
+    let profitForm = new FormData();
+    profitForm.append("position", JSON.stringify(content));
+    const profitRes = await fetch("/somarlucro", {
+      method: "POST",
+      body: profitForm,
+    });
+    const profitData = await profitRes.json();
+    setProfit(profitData);
+  };
+
+  const getMonthProfit = async () => {
     const resMonthProfit = await fetch("/monthprofit", {
       method: "POST",
     });
@@ -108,7 +132,7 @@ const App = () => {
       {posicoes.length === 0 ? (
         "Carregando posição..."
       ) : (
-        <Posicoes posicoes={posicoes} />
+        <Posicoes posicoes={posicoes} liquitadeOption={liquidateOption} />
       )}
       <Section></Section>
       <Section></Section>
