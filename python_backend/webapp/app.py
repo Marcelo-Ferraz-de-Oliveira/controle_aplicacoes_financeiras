@@ -17,12 +17,12 @@ position: Position = Position()
 profit: Profit = Profit()
 notas: Notas = Notas()
 
+
 @app.route('/monthprofit', methods=['POST'])
 def get_month_profit() -> str:
-    # return json.dumps(profit.get_month_profit(datetime(2022, 2, 1)))
     if request.values:
         pass
-    return json.dumps(profit.get_month_profit(datetime.today()))
+    return json.dumps(profit.month_profit)
 
 @app.route('/somarlucro', methods=['POST'])
 def set_lucro() -> str:

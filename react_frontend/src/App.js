@@ -7,6 +7,7 @@ import Profit from "./components/Profit";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ModalError from "./components/ModalError";
+import ModalAbout from "./components/ModalAbout";
 
 const App = () => {
   const [data, setData] = useState([]);
@@ -121,6 +122,7 @@ const App = () => {
       {data.length === 0 ? "" : data && <Notas notas={data} />}
       <Footer />
       <ModalError error={isError} onHide={() => setIsError("")} />
+      <ModalAbout />
     </div>
   );
 };
