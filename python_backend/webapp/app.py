@@ -9,7 +9,7 @@ from webapp.profit import Profit
 from webapp.notas import Notas
 from datetime import datetime
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../../react_frontend/build', static_url_path="/")
 app.config['TRAP_HTTP_EXCEPTIONS']=True
 
 
@@ -17,6 +17,9 @@ position: Position = Position()
 profit: Profit = Profit()
 notas: Notas = Notas()
 
+@app.route("/")
+def index():
+    return app.send_static_file('index.html')
 
 @app.route('/monthprofit', methods=['POST'])
 def get_month_profit() -> str:
@@ -81,4 +84,4 @@ def random_tempfile() -> str:
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0")
