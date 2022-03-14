@@ -1,7 +1,7 @@
 import React from "react";
 import { Nav, Navbar, Container } from "react-bootstrap";
 
-const Header = () => {
+const Header = ({ setShowAbout }) => {
   return (
     <Navbar expand="lg" variant="dark" bg="dark" fixed="top" sticky="top">
       <Container>
@@ -11,7 +11,9 @@ const Header = () => {
         <Navbar.Toggle />
         <Navbar.Collapse className="justify-content-end">
           <Nav className="justify-content-end">
-            <Nav.Link href="#learn">Sobre</Nav.Link>
+            <Nav.Link href="#" onClick={() => setShowAbout(true)}>
+              Sobre
+            </Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>

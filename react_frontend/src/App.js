@@ -16,6 +16,7 @@ const App = () => {
   const [profit, setProfit] = useState({});
   const [monthProfit, setMonthProfit] = useState(0);
   const [isError, setIsError] = useState("");
+  const [showAbout, setShowAbout] = useState(true);
 
   useEffect(() => {
     //Fetch Tasks
@@ -116,14 +117,14 @@ const App = () => {
 
   return (
     <div className="pb-5">
-      <Header />
+      <Header setShowAbout={setShowAbout} />
       <Loader fetchData={fetchData} bText={bText} />
       <Profit profit={profit} monthProfit={monthProfit} />
       <Posicoes posicoes={posicoes} liquitadeOption={liquidateOption} />
       {data.length === 0 ? "" : data && <Notas notas={data} />}
       <Footer />
       <ModalError error={isError} onHide={() => setIsError("")} />
-      <ModalAbout />
+      <ModalAbout showAbout={showAbout} setShowAbout={setShowAbout} />
     </div>
   );
 };
