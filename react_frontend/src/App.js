@@ -36,6 +36,7 @@ const App = () => {
       fetchData();
     };
     fetchTasks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchData = async (body = []) => {

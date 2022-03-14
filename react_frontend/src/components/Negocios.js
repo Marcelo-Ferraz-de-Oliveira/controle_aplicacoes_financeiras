@@ -1,5 +1,4 @@
-import { Container, Accordion, Badge } from "react-bootstrap";
-import Section from "./Section";
+import { Accordion } from "react-bootstrap";
 
 const Negocios = ({ negocios, numNota }) => {
   return (

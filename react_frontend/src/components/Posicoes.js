@@ -1,5 +1,5 @@
 import React from "react";
-import { Container, Card, ListGroup, Button } from "react-bootstrap";
+import { Container, ListGroup, Button } from "react-bootstrap";
 import Section from "./Section";
 
 const toBR = (str) => {
