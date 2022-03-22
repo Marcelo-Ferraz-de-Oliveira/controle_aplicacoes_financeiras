@@ -12,15 +12,22 @@ import glob
 import re
 import json
 import os
+import logging
+
+
 
 def get_wd(dat):
     URL_B3_INSTRUMENTS = 'https://arquivos.b3.com.br/tabelas/InstrumentsConsolidated/'+dat.strftime("%Y-%m-%d")
     wd = get_headless_selenium_webdriver()
-    wd.get(URL_B3_INSTRUMENTS)
+    try:
+        wd.get(URL_B3_INSTRUMENTS)
+        if wd.find_elements('id','label-nao-encontrado'):
+            return get_wd(dat-timedelta(days=1))
+    except Exception as e:
+        wd.close()
+        return get_wd(dat)
     time.sleep(1)
     #verifica se é feriado ou fim de semana e tenta no dia anterior 
-    if wd.find_elements('id','label-nao-encontrado'):
-        return get_wd(dat-timedelta(days=1))
     return wd
 
 def obter_CSV_B3():
