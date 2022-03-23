@@ -17,6 +17,7 @@ jobs:
           . venv/bin/activate
           pytest --cov=. --cov-fail-under 50
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     name: Deploy to Heroku as Docker image
     steps:
