@@ -11,10 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     name: Mount development environment and test
     steps:
-        - run: |
-            make install
-            . venv/bin/activate
-            pytest --cov=. --cov-fail-under 50
+      - uses: actions/checkout@v2
+      - run: |
+          make install
+          . venv/bin/activate
+          pytest --cov=. --cov-fail-under 50
   deploy:
     runs-on: ubuntu-latest
     name: Deploy to Heroku as Docker image
