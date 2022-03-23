@@ -37,7 +37,7 @@ def obter_CSV_B3():
     #Não há id, classe, ou qualquer outra coisa para identificar o link!
     links = wd.find_elements('tag name','a')
     links[-1].click()
-    time.sleep(3)
+    time.sleep(5)
     #Retorna um Dataframe e remove o arquivo
     files = glob.glob('Instruments*.csv')
     for file in files:
@@ -46,7 +46,7 @@ def obter_CSV_B3():
             df = pd.read_csv(file,sep=';',encoding='ISO-8859-1', low_memory=False)
             os.remove(file)
             return df
-    return pd.DataFrame()
+    return obter_CSV_B3()
     
 if __name__ == "__main__":
     #Obter a lista de códigos (ON, PN, ETC) e o seu código correspondente (3, 4, ETC)
