@@ -13,7 +13,7 @@ Será gerado um json no seguinte formato:
   {
     "nota": 0000,
     "folha": 0,
-    "data": 01/01/2001,
+    "data": "01/01/2001",
     "corretora": "nome_corretora",
     "negocios": [
       {
