@@ -37,7 +37,7 @@ def obter_CSV_B3():
     #Não há id, classe, ou qualquer outra coisa para identificar o link!
     links = wd.find_elements('tag name','a')
     links[-1].click()
-    time.sleep(5)
+    time.sleep(60)
     #Retorna um Dataframe e remove o arquivo
     files = glob.glob('Instruments*.csv')
     for file in files:
