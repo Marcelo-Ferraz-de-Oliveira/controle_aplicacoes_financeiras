@@ -1,5 +1,5 @@
 
-#Tradutor de Nome do Pregão B3 para Código de Negociação
+#Tradutor de Nome do Pregão B3 para Código de Negociação B3
 #suporte a todos os instrumentos da B3
 from builtins import ValueError
 import json
