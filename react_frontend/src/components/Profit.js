@@ -20,6 +20,15 @@ const Profit = ({ profit, monthProfit }) => {
         <h4 className="text-center">Lucros / Prejuízos</h4>
         <Container className="col-md-6 col-lg-3">
           <ListGroup>
+            {Object.entries(monthProfit).map(([data, lucro]) => (
+              <ListGroup.Item key={data}>
+                Lucro no mês {data}: {toBR(lucro)}
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
+        </Container>
+        <Container className="col-md-6 col-lg-3">
+          <ListGroup>
             <ListGroup.Item>
               <Form>
                 <Form.Select
@@ -53,7 +62,7 @@ const Profit = ({ profit, monthProfit }) => {
             </ListGroup.Item>
           </ListGroup>
         </Container>
-        <Container className="col-md-6 col-lg-3">
+        {/* <Container className="col-md-6 col-lg-3">
           <ListGroup>
             {Object.entries(profit).map(([data, lucro]) => (
               <ListGroup.Item key={data}>
@@ -61,7 +70,7 @@ const Profit = ({ profit, monthProfit }) => {
               </ListGroup.Item>
             ))}
           </ListGroup>
-        </Container>
+        </Container> */}
       </Container>
     </Section>
   );
