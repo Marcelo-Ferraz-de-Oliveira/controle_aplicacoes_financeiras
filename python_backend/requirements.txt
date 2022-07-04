@@ -1,11 +1,13 @@
 async-generator==1.10
 attrs==21.4.0
+beautifultable==1.1.0
 certifi==2021.10.8
 cffi==1.15.0
 click==8.0.3
 coverage==6.3.2
 cryptography==36.0.1
 distro==1.7.0
+filelock==3.7.1
 Flask==2.0.3
 gunicorn==20.1.0
 h11==0.13.0
@@ -24,6 +26,7 @@ py==1.11.0
 pycparser==2.21
 pyOpenSSL==22.0.0
 pyparsing==3.0.7
+pysondb==1.6.7
 pytest==7.0.1
 pytest-cov==3.0.0
 python-dateutil==2.8.2
@@ -38,5 +41,6 @@ tomli==2.0.1
 trio==0.19.0
 trio-websocket==0.9.2
 urllib3==1.26.8
+wcwidth==0.2.5
 Werkzeug==2.0.3
 wsproto==1.0.0
