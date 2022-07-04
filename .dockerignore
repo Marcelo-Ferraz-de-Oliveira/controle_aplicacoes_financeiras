@@ -9,6 +9,8 @@ Instruments*
 .pytest*
 .vscode*
 .coverage
+*.json
+*.json.lock
 
 # react-frontent
 node_modules
