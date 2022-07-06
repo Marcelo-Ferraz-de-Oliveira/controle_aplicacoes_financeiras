@@ -7,6 +7,7 @@ click==8.0.3
 coverage==6.3.2
 cryptography==36.0.1
 distro==1.7.0
+dnspython==2.2.1
 filelock==3.7.1
 Flask==2.0.3
 gunicorn==20.1.0
@@ -24,6 +25,7 @@ pandas==1.4.1
 pluggy==1.0.0
 py==1.11.0
 pycparser==2.21
+pymongo==4.1.1
 pyOpenSSL==22.0.0
 pyparsing==3.0.7
 pysondb==1.6.7
