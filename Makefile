@@ -5,7 +5,7 @@ install:
 		echo "Dependecies already installed in $(VENV_DIR)."; \
 	 else \
 	 	echo "Installing in $(VENV_DIR)"; \
-	 	sudo apt update && sudo apt install default-jre python3.9 python3-pip chromium-chromedriver -y && python3 -m venv $(VENV_DIR); \
+	 	sudo apt update && sudo apt install default-jre python3.10 python3-pip python3.10-venv chromium-chromedriver -y && python3 -m venv $(VENV_DIR); \
 	 	. $(VENV_DIR)/bin/activate && cd python_backend && pip3 install -r requirements.txt && cd webapp && cp .flaskenv.example .flaskenv; \
 		cd ../../react_frontend && sudo apt install nodejs npm -y && npm install; \
 	fi

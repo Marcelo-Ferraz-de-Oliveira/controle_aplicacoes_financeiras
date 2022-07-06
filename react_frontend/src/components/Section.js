@@ -1,5 +1,5 @@
 import React from "react";
-import { Container, Card } from "react-bootstrap";
+import { Container } from "react-bootstrap";
 
 const Section = ({ children, bg = "light", text = "dark", flex = "sm" }) => {
   return (
