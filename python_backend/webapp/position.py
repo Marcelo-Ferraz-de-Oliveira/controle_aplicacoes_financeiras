@@ -85,7 +85,7 @@ class Position:
                     }
     #Adiciona um negócio de nota de corretagem à posição atual
     def add_negocio(self, posicao: dict, negocio: dict, data: str):
-      lucro = {}
+      lucro = posicao["lucro"]
       if negocio["quantidade"] == 0:
         return posicao
       quantidade_temp = posicao["quantidade"]+negocio["quantidade"]
