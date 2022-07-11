@@ -5,6 +5,8 @@ class Profit:
     def __init__(self) -> None:
         self.__profit = {}
         self.__month_profit = {}
+        self.__profit_daytrade = {}
+        self.__month_profit_daytrade = {}
     
     @property
     def profit(self) -> dict:
@@ -20,9 +22,27 @@ class Profit:
     def month_profit(self, month_profit: dict) -> None:
         self.__month_profit = month_profit
 
+    @property
+    def profit_daytrade(self) -> dict:
+        return self.__profit_daytrade
+    @profit_daytrade.setter
+    def profit_daytrade(self, profit_daytrade: dict) -> None:
+        self.__profit_daytrade = profit_daytrade
+    
+    @property
+    def month_profit_daytrade(self) -> dict:
+        return self.__month_profit_daytrade
+    @month_profit_daytrade.setter
+    def month_profit_daytrade(self, month_profit_daytrade: dict) -> None:
+        self.__month_profit_daytrade = month_profit_daytrade
+
     def get_months_with_profit(self) -> None:
         months = self._date_str_to_sorted_unique_months_str(list(self.profit.keys()))
-        self.month_profit = {month: self._get_month_profit(datetime.strptime(month, "%m/%Y")) for month in months}
+        self.month_profit = {month: self._get_month_profit(self.profit, datetime.strptime(month, "%m/%Y")) for month in months}
+
+    def get_months_with_profit_daytrade(self) -> None:
+        months = self._date_str_to_sorted_unique_months_str(list(self.profit_daytrade.keys()))
+        self.month_profit_daytrade = {month: self._get_month_profit(self.profit_daytrade, datetime.strptime(month, "%m/%Y")) for month in months}
     
     def _date_str_to_sorted_unique_months_str(self, days: list) -> list:
         months = [datetime.strptime(day, "%d/%m/%Y").replace(day=1) for day in days]
@@ -38,14 +58,19 @@ class Profit:
             dict: Profit dict with each date and total profit
         """    
         self.profit = {}
+        self.profit_daytrade = {}
         for position in positions.position.values():
-            for k, v in position['lucro'].items():
+            for k, v in position['lucro_normal'].items():
                 self.profit[k] = self.profit[k] + v if k in self.profit else v
+            for k, v in position['lucro_daytrade'].items():
+                self.profit_daytrade[k] = self.profit_daytrade[k] + v if k in self.profit_daytrade else v
         self.get_months_with_profit()
+        self.get_months_with_profit_daytrade()
+
     
-    def _get_month_profit(self, date: datetime) -> float:            
+    def _get_month_profit(self, profit, date: datetime) -> float:            
         month_profit = 0
-        for k, v in self.profit.items():
+        for k, v in profit.items():
             if self._firstday_datetime(date) == self._str_date_to_datetime(k):
                 month_profit += v
         return month_profit

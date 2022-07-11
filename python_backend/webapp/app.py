@@ -29,6 +29,12 @@ def get_month_profit() -> str:
         pass
     return json.dumps(profit.month_profit)
 
+@app.route('/monthprofitdaytrade', methods=['POST'])
+def get_month_profit_daytrade() -> str:
+    if request.values:
+        pass
+    return json.dumps(profit.month_profit_daytrade)
+
 @app.route('/somarlucro', methods=['POST'])
 def set_lucro() -> str:
     return json.dumps(profit.profit)
@@ -36,6 +42,10 @@ def set_lucro() -> str:
 @app.route('/lucro', methods=['POST'])
 def get_lucro() -> str:    
     return json.dumps(profit.profit)
+
+@app.route('/lucrodaytrade', methods=['POST'])
+def get_lucro_daytrade() -> str:    
+    return json.dumps(profit.profit_daytrade)
 
 @app.route('/posicao', methods=['POST'])
 def get_posicao() -> str:
