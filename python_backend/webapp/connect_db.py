@@ -7,8 +7,8 @@ def get_database():
     DB_PASSWORD=str(os.getenv("DB_PASSWORD"))
     DB_CLUSTER_NAME=str(os.getenv("DB_CLUSTER_NAME"))
     DB_BASE_NAME=str(os.getenv("DB_BASE_NAME"))
-    print(DB_BASE_NAME, DB_CLUSTER_NAME, DB_PASSWORD, DB_USERNAME)
-    if "" in (DB_BASE_NAME, DB_CLUSTER_NAME, DB_PASSWORD, DB_USERNAME): raise ValueError ("Variáveis de ambiente com credenciais de banco não inseridas")
+    for var in (DB_BASE_NAME, DB_CLUSTER_NAME, DB_PASSWORD, DB_USERNAME):
+        if not var: raise ValueError ("Variáveis de ambiente com credenciais de banco não inseridas")
 
     # Provide the mongodb atlas url to connect python to mongodb using pymongo
     CONNECTION_STRING = f"mongodb+srv://{DB_USERNAME}:{DB_PASSWORD}@{DB_CLUSTER_NAME}.mongodb.net/?retryWrites=true&w=majority"
