@@ -1,9 +1,7 @@
 from datetime import datetime
-from webapp.connect_db import get_database
 class Notas:
-    def __init__(self) -> None:
-        self.__db = get_database()
-        self.__nota = self.__db['notas']
+    def __init__(self, database) -> None:
+        self.__nota = database['notas']
     @property
     def nota(self) -> list:
         return_notas = sorted(list(self.__nota.find()), key=lambda d: datetime.strptime(d["date_datetime"], "%d/%m/%Y"))

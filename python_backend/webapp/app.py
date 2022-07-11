@@ -8,14 +8,16 @@ from webapp.position import Position
 from webapp.profit import Profit
 from webapp.notas import Notas
 from datetime import datetime
+from webapp.connect_db import get_database
 
+database = get_database()
 app = Flask(__name__, static_folder='../../react_frontend/build', static_url_path="/")
 app.config['TRAP_HTTP_EXCEPTIONS']=True
 
 
-position: Position = Position()
+position: Position = Position(database)
 profit: Profit = Profit()
-notas: Notas = Notas()
+notas: Notas = Notas(database)
 
 @app.route("/")
 def index():

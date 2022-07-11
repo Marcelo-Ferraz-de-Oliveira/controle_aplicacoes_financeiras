@@ -1,15 +1,31 @@
 from datetime import datetime, timedelta
 
 class Position:
-    def __init__(self) -> None:
-        self.__position = {}
-        self.__added_notes = []
+    def __init__(self, database) -> None:
+        self.__position = database['position']
+        if not self.__position.find_one(): self.__position.insert_one({})
+        self.__added_notes = database['added_notes']
+
     @property
     def position(self) -> dict:
-        return self.__position
+        result = self.__position.find_one()
+        result = {key: result[key] for key in result if key != "_id"}
+        return result
     @position.setter
     def position(self, position: dict) -> None:
-        self.__position = position
+        print(f"Position: {position}")
+        print(self.__position.find_one())
+        self.__position.find_one_and_replace({}, position) 
+
+    @property
+    def added_notes(self) -> dict:
+        result = self.__added_notes.find()
+        #[{a:1, _id:1},{b:2, _id:2}]
+        #[1,2]
+        result = [v for v in {k: v for d in result for k, v in d.items()}]
+        return result
+    def add_note(self, note: int) -> None:
+        self.__added_notes.insert_one({str(note): note}) 
     
     def liquidate_expired_option(self, code: str) -> None:
         option_date = self._get_third_fryday_next_day(self._month_year_str_to_date(self.position[code]['prazo']))
@@ -17,13 +33,18 @@ class Position:
           'quantidade': -self.position[code]['quantidade'], 
           'valor_operacao': 0
         }
-        self.position[code] = self.add_negocio(
+        temp = self.position
+        temp[code] = self.add_negocio(
                                 self.position[code],
                                 inverse_pos,
                                 self._datetime_to_str_date(
                                   option_date
                                 )
                               )
+        data = self._datetime_to_str_date(option_date)
+        if data not in temp[code]["trade"]: temp[code]["trade"][data] = []
+        temp[code]["trade"][data].append([inverse_pos, 0])
+        self.position = temp
     
     def check_expired_options(self) -> None:
         today = datetime.now()
@@ -31,9 +52,14 @@ class Position:
           if pos['prazo'] and pos['quantidade']:
             option_date = self._get_third_fryday_next_day(self._month_year_str_to_date(pos['prazo']))
             if option_date < today :
-              self.position[key]['expirado'] = "true"
+              temp = self.position
+              temp[key]['expirado'] = "true"
+              self.position = temp
               continue
-          self.position[key]['expirado'] = "false"
+          temp = self.position
+          temp[key]['expirado'] = "false"
+          self.position = temp
+
           
     
     def _datetime_to_str_date(self, date: datetime) -> str:
@@ -55,8 +81,8 @@ class Position:
     #Atualiza a posição atual com todos os negócios de todas as notas de corretagem processadas
       for i, nota in enumerate(notas):
           data = nota["data"]
-          if nota["nota"] not in self.__added_notes:
-            self.__added_notes.append(nota["nota"])
+          if str(nota["nota"]) not in self.added_notes:
+            self.add_note(nota["nota"])
             for j, negocio in enumerate(nota["negocios"]):
                 if negocio["codigo"] in list(self.position.keys()):
                     k = negocio["codigo"]
@@ -68,21 +94,29 @@ class Position:
                     negocio["quantidade"] = negocio["quantidade"] if negocio["cv"]=="C" else -negocio["quantidade"]
                     negocio["valor_operacao"] = negocio["valor_operacao"] if negocio["cv"]=="C" else -negocio["valor_operacao"]
                     negocio["valor_operacao"] += nota["custos"]["total"]*negocio['custo_proporcional']
-                    self.position[negocio["codigo"]] = self.add_negocio(self.position[negocio["codigo"]],negocio, data)
+                    temp = self.position
+                    if data not in temp[negocio["codigo"]]["trade"]: temp[negocio["codigo"]]["trade"][data] = []
+                    temp[negocio["codigo"]]["trade"][data].append([negocio["quantidade"], negocio["valor_operacao"]])
+                    temp[negocio["codigo"]] = self.add_negocio(temp[negocio["codigo"]],negocio, data)
+                    self.position = temp
                 else:
                     negocio["quantidade"] = negocio["quantidade"] if negocio["cv"]=="C" else -negocio["quantidade"]
                     negocio["valor_operacao"] = negocio["valor_operacao"] if negocio["cv"]=="C" else -negocio["valor_operacao"]
-                    valor = negocio["valor_operacao"] + nota["custos"]["total"]*negocio['custo_proporcional']
+                    valor = negocio["valor_operacao"] + nota["custos"] ["total"]*negocio['custo_proporcional']
                     preco_medio = valor/negocio["quantidade"]
-                    self.position[ negocio["codigo"]] = {
+                    temp = self.position
+                    temp[negocio["codigo"]] = {
                         "ativo": negocio["codigo"],
                         "quantidade": negocio["quantidade"],
                         "prazo": negocio["prazo"],
                         "valor": valor,
                         "preco_medio": preco_medio,
                         "lucro": {},
+                        "trade": {data: [[negocio["quantidade"], valor]]},
                         "expirado": "false",
                     }
+                    self.position = temp
+
     #Adiciona um negócio de nota de corretagem à posição atual
     def add_negocio(self, posicao: dict, negocio: dict, data: str):
       lucro = posicao["lucro"]
@@ -116,6 +150,7 @@ class Position:
           "preco_medio": preco_medio,
           "valor": valor,
           "lucro": lucro,
+          "trade": posicao['trade'],
           "expirado": "false",
       }
       negocio_temp = {"quantidade": quantidade_temp-quantidade, "valor_operacao": negocio_valor_inicial/negocio_quantidade_inicial*(quantidade_temp-quantidade)}
