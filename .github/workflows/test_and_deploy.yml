@@ -20,6 +20,11 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     name: Deploy to Heroku as Docker image
+    env:
+      DB_BASE_NAME: ${{ secrets.DB_BASE_NAME}}
+      DB_CLUSTER_NAME: ${{ secrets.DB_CLUSTER_NAME}}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD}}
+      DB_USERNAME: ${{ secrets.DB_USERNAME}}
     steps:
       - uses: actions/checkout@v2
       - uses: akhileshns/heroku-deploy@v3.12.12
@@ -27,4 +32,9 @@ jobs:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: ${{secrets.HEROKU_APP_NAME}}
           heroku_email: ${{secrets.HEROKU_EMAIL}}
+          docker_build_args: |
+            DB_BASE_NAME
+            DB_CLUSTER_NAME
+            DB_PASSWORD
+            DB_USERNAME
           usedocker: true
