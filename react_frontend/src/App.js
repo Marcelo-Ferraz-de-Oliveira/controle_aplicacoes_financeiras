@@ -14,7 +14,9 @@ const App = () => {
   const [posicoes, setPosicoes] = useState([]);
   const [bText, setBText] = useState("Processar nota de negociação");
   const [profit, setProfit] = useState({});
+  const [profitDaytrade, setProfitDaytrade] = useState({});
   const [monthProfit, setMonthProfit] = useState(0);
+  const [monthProfitDaytrade, setMonthProfitDaytrade] = useState(0);
   const [isError, setIsError] = useState("");
   const [showAbout, setShowAbout] = useState(true);
 
@@ -34,6 +36,7 @@ const App = () => {
       setProfit(jsonProfit);
 
       getMonthProfit();
+      getMonthProfitDaytrade();
       fetchData();
     };
     fetchTasks();
@@ -115,11 +118,20 @@ const App = () => {
     setMonthProfit(jsonMonthProfit);
   };
 
+  const getMonthProfitDaytrade = async () => {
+    const resMonthProfitDaytrade = await fetch("/monthprofitdaytrade", {
+      method: "POST",
+    });
+    const jsonMonthProfitDaytrade = await resMonthProfitDaytrade.json();
+    setMonthProfitDaytrade(jsonMonthProfitDaytrade);
+  };
+
   return (
     <div className="pb-5">
       <Header setShowAbout={setShowAbout} />
       <Loader fetchData={fetchData} bText={bText} />
       <Profit profit={profit} monthProfit={monthProfit} />
+      <Profit profit={profitDaytrade} monthProfit={monthProfitDaytrade} />
       <Posicoes posicoes={posicoes} liquitadeOption={liquidateOption} />
       {data.length === 0 ? "" : data && <Notas notas={data} />}
       <Footer />
