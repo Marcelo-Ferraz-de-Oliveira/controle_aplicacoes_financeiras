@@ -13,10 +13,10 @@ const App = () => {
   const [data, setData] = useState([]);
   const [posicoes, setPosicoes] = useState([]);
   const [bText, setBText] = useState("Processar nota de negociação");
-  const [profit, setProfit] = useState({});
-  const [profitDaytrade, setProfitDaytrade] = useState({});
   const [monthProfit, setMonthProfit] = useState(0);
   const [monthProfitDaytrade, setMonthProfitDaytrade] = useState(0);
+  const [monthTax, setMonthTax] = useState(0);
+  const [monthTaxDaytrade, setMonthTaxDaytrade] = useState(0);
   const [isError, setIsError] = useState("");
   const [showAbout, setShowAbout] = useState(true);
 
@@ -29,14 +29,10 @@ const App = () => {
       const data = await res.json();
       setPosicoes(data);
 
-      const resProfit = await fetch("/lucro", {
-        method: "POST",
-      });
-      const jsonProfit = await resProfit.json();
-      setProfit(jsonProfit);
-
       getMonthProfit();
       getMonthProfitDaytrade();
+      getMonthTax();
+      getMonthTaxDaytrade();
       fetchData();
     };
     fetchTasks();
@@ -71,8 +67,10 @@ const App = () => {
     if (res && res.status === 200) {
       const content = await res.json();
       setPosicoes(content);
-      updateProfit(content);
       getMonthProfit();
+      getMonthProfitDaytrade();
+      getMonthTax();
+      getMonthTaxDaytrade();
     } else {
       const error = await res.text();
       console.log(error);
@@ -90,24 +88,15 @@ const App = () => {
     if (res && res.status === 200) {
       const content = await res.json();
       setPosicoes(content);
-      updateProfit(content);
       getMonthProfit();
+      getMonthProfitDaytrade();
+      getMonthTax();
+      getMonthTaxDaytrade();
     } else {
       const error = await res.text();
       console.log(error);
       setIsError(error);
     }
-  };
-
-  const updateProfit = async (content) => {
-    let profitForm = new FormData();
-    profitForm.append("position", JSON.stringify(content));
-    const profitRes = await fetch("/somarlucro", {
-      method: "POST",
-      body: profitForm,
-    });
-    const profitData = await profitRes.json();
-    setProfit(profitData);
   };
 
   const getMonthProfit = async () => {
@@ -125,13 +114,36 @@ const App = () => {
     const jsonMonthProfitDaytrade = await resMonthProfitDaytrade.json();
     setMonthProfitDaytrade(jsonMonthProfitDaytrade);
   };
+  const getMonthTax = async () => {
+    const resMonthTax = await fetch("/monthtax", {
+      method: "POST",
+    });
+    const jsonMonthTax = await resMonthTax.json();
+    setMonthTax(jsonMonthTax);
+  };
+
+  const getMonthTaxDaytrade = async () => {
+    const resMonthTaxDaytrade = await fetch("/monthtaxdaytrade", {
+      method: "POST",
+    });
+    const jsonMonthTaxDaytrade = await resMonthTaxDaytrade.json();
+    setMonthTaxDaytrade(jsonMonthTaxDaytrade);
+  };
 
   return (
     <div className="pb-5">
       <Header setShowAbout={setShowAbout} />
       <Loader fetchData={fetchData} bText={bText} />
-      <Profit profit={profit} monthProfit={monthProfit} />
-      <Profit profit={profitDaytrade} monthProfit={monthProfitDaytrade} />
+      <Profit
+        title="Resultados"
+        monthProfit={monthProfit}
+        monthTaxes={monthTax}
+      />
+      <Profit
+        title="Resultados Day Trade"
+        monthProfit={monthProfitDaytrade}
+        monthTaxes={monthTaxDaytrade}
+      />
       <Posicoes posicoes={posicoes} liquitadeOption={liquidateOption} />
       {data.length === 0 ? "" : data && <Notas notas={data} />}
       <Footer />

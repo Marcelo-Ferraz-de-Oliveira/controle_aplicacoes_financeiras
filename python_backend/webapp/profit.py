@@ -4,9 +4,12 @@ from datetime import datetime
 class Profit:
     def __init__(self) -> None:
         self.__profit = {}
-        self.__month_profit = {}
         self.__profit_daytrade = {}
+        self.__month_profit = {}
         self.__month_profit_daytrade = {}
+        self.__month_tax = {}
+        self.__month_tax_daytrade = {}
+
     
     @property
     def profit(self) -> dict:
@@ -35,6 +38,20 @@ class Profit:
     @month_profit_daytrade.setter
     def month_profit_daytrade(self, month_profit_daytrade: dict) -> None:
         self.__month_profit_daytrade = month_profit_daytrade
+    
+    @property
+    def month_tax(self) -> dict:
+        return self.__month_tax
+    @month_tax.setter
+    def month_tax(self, month_tax: dict) -> None:
+        self.__month_tax = month_tax
+    
+    @property
+    def month_tax_daytrade(self) -> dict:
+        return self.__month_tax_daytrade
+    @month_tax_daytrade.setter
+    def month_tax_daytrade(self, month_tax_daytrade: dict) -> None:
+        self.__month_tax_daytrade = month_tax_daytrade
 
     def get_months_with_profit(self) -> None:
         months = self._date_str_to_sorted_unique_months_str(list(self.profit.keys()))
@@ -44,6 +61,25 @@ class Profit:
         months = self._date_str_to_sorted_unique_months_str(list(self.profit_daytrade.keys()))
         self.month_profit_daytrade = {month: self._get_month_profit(self.profit_daytrade, datetime.strptime(month, "%m/%Y")) for month in months}
     
+    def get_months_tax(self) -> None:
+        profit = 0
+        for month, value in self.month_profit.items():
+            profit += value
+            if profit < 0: 
+                continue
+            self.month_tax[month] = profit*0.15
+            profit = 0
+
+    def get_months_tax_daytrade(self) -> None:
+        profit = 0
+        for month, value in self.month_profit_daytrade.items():
+            profit += value
+            if profit < 0: 
+                continue
+            self.month_tax_daytrade[month] = profit*0.20
+            profit = 0
+
+
     def _date_str_to_sorted_unique_months_str(self, days: list) -> list:
         months = [datetime.strptime(day, "%d/%m/%Y").replace(day=1) for day in days]
         return [datetime.strftime(date, "%m/%Y") for date in sorted(set(months))]
@@ -66,6 +102,8 @@ class Profit:
                 self.profit_daytrade[k] = self.profit_daytrade[k] + v if k in self.profit_daytrade else v
         self.get_months_with_profit()
         self.get_months_with_profit_daytrade()
+        self.get_months_tax()
+        self.get_months_tax_daytrade()
 
     
     def _get_month_profit(self, profit, date: datetime) -> float:            

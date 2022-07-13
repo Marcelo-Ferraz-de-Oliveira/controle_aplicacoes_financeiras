@@ -35,9 +35,17 @@ def get_month_profit_daytrade() -> str:
         pass
     return json.dumps(profit.month_profit_daytrade)
 
-@app.route('/somarlucro', methods=['POST'])
-def set_lucro() -> str:
-    return json.dumps(profit.profit)
+@app.route('/monthtax', methods=['POST'])
+def get_month_tax() -> str:
+    if request.values:
+        pass
+    return json.dumps(profit.month_tax)
+
+@app.route('/monthtaxdaytrade', methods=['POST'])
+def get_month_tax_daytrade() -> str:
+    if request.values:
+        pass
+    return json.dumps(profit.month_tax_daytrade)
 
 @app.route('/lucro', methods=['POST'])
 def get_lucro() -> str:    
