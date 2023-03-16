@@ -251,7 +251,7 @@ def extrair_negocios(file_to_open: str, passwd: str, area_negocios: list) -> lis
     Returns:
         list: _description_
     """  
-    RE_FINDALL_NEGOCIO_STRING = r'^(.{1} )?(\d{1}-[A-Z]+) (\w{1}) (OPCAO ?[A-Z ]+|VISTA) (\d\d\/\d\d )?((.*) (.* ))([\d\,\.]+) ([\d\,\.]+) ([\d\,\.]+) (.$)'
+    RE_FINDALL_NEGOCIO_STRING = r'^(.{1} )?(\d{1}-[A-Z]+) (\w{1}) (OPCAO ?[A-Z ]+|VISTA) (\d\d\/\d\d)? ?((.*) (.*)) ([\d\,\.]+) ([\d\,\.]+) ([\d\,\.]+) (.$)'
     #Extração dos negócios realizados
     dfs_negocios = tabula.io.read_pdf(file_to_open, stream = True, area=area_negocios, pages = 'all',relative_area= True, password = passwd, columns=[0])
     #Usa a expressão regular para dividir os campos, insere no Dataframe e calcula outras colunas
