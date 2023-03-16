@@ -235,6 +235,11 @@ def extrair_header(file_to_open: str, passwd: str, corretora: str, area_headers:
         headers.extend(df_header.to_dict(orient='records'))
     return headers
 
+def identificar_daytrade(obs: str):
+  obs = str(obs)
+  if obs[0] == 'D': return 'D'
+  return ''
+
 def extrair_negocios(file_to_open: str, passwd: str, area_negocios: list) -> list: 
     """_summary_
 
@@ -246,7 +251,7 @@ def extrair_negocios(file_to_open: str, passwd: str, area_negocios: list) -> lis
     Returns:
         list: _description_
     """  
-    RE_FINDALL_NEGOCIO_STRING = r'^(.{1} )?(\d{1}-[A-Z]+) (\w{1}) (OPCAO [A-Z ]+|VISTA) (\d\d\/\d\d)? ?(.*) (.{1} )?([\d\,\.]+) ([\d\,\.]+) ([\d\,\.]+) (.$)'
+    RE_FINDALL_NEGOCIO_STRING = r'^(.{1} )?(\d{1}-[A-Z]+) (\w{1}) (OPCAO ?[A-Z ]+|VISTA) (\d\d\/\d\d)? ?((.*) (.*)) ([\d\,\.]+) ([\d\,\.]+) ([\d\,\.]+) (.$)'
     #Extração dos negócios realizados
     dfs_negocios = tabula.io.read_pdf(file_to_open, stream = True, area=area_negocios, pages = 'all',relative_area= True, password = passwd, columns=[0])
     #Usa a expressão regular para dividir os campos, insere no Dataframe e calcula outras colunas
@@ -256,7 +261,9 @@ def extrair_negocios(file_to_open: str, passwd: str, area_negocios: list) -> lis
         for negocio in df_negocios.iloc[:,1]:
             list_negocios.extend(re.findall(RE_FINDALL_NEGOCIO_STRING,str_to_br_currency(negocio)))
         df_negocios: pd.DataFrame = pd.DataFrame(list_negocios)
-        df_negocios.columns = ['q','negociacao','cv','tipo_mercado','prazo','nome_pregao','obs','quantidade','preco','valor_operacao','dc']
+        df_negocios.columns = ['q','negociacao','cv','tipo_mercado','prazo','nome_pregao','___','obs','quantidade','preco','valor_operacao','dc']
+        df_negocios = df_negocios.drop(columns=['___'])
+        df_negocios['obs'] = df_negocios['obs'].apply(identificar_daytrade)
         df_negocios[['quantidade','preco','valor_operacao']] = df_negocios[['quantidade','preco','valor_operacao']].astype(float)
         df_negocios['codigo'] = df_negocios['nome_pregao'].apply(nome_pregao_to_codigo)
         #calcula o peso percentual nos custos de corretagem
