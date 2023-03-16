@@ -194,7 +194,10 @@ def agrupar_paginas(headers: list, negocios: list, custos: list) -> tuple:
     Returns:
         list: _description_
     """
-    for n, _ in enumerate(headers):
+    # n = len(headers)
+    n = 0
+    while n < len(headers):
+        print(n, headers[n-1], headers[n])
         if headers[n-1:n]:
             if headers[n]['nota'] == headers[n-1]['nota']:
                 #Reindex the index keys to continue after last key of previous negocios
@@ -205,6 +208,8 @@ def agrupar_paginas(headers: list, negocios: list, custos: list) -> tuple:
                 del negocios[n-1]
                 del custos[n-1]
                 del headers[n-1]
+                n = -1
+        n += 1
     return (headers, negocios, custos,)
 
 def extrair_header(file_to_open: str, passwd: str, corretora: str, area_headers: list) -> list:
