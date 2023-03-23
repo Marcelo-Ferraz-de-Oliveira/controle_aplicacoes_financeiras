@@ -37,12 +37,13 @@ class Position:
                                 inverse_pos,
                                 self._datetime_to_str_date(
                                   option_date
-                                )
+                                ),
+                                code
                               )
         data = self._datetime_to_str_date(option_date)
         if data not in temp[code]["trade"]: temp[code]["trade"][data] = []
         temp[code]["trade"][data].append([inverse_pos['quantidade'], inverse_pos['valor_operacao']])
-        temp[code] = self.add_profit_daytrade(temp[code])
+        # temp[code] = self.add_profit_daytrade(temp[code])
         temp = self.add_profit_position(temp, [code], data)
         self.position = temp
     
@@ -85,6 +86,7 @@ class Position:
             self.add_note(nota["nota"])
             codigos = []
             for j, negocio in enumerate(nota["negocios"]):
+                if negocio["obs"] == 'D': negocio["codigo"] = negocio["codigo"]+"D" 
                 if negocio["codigo"] not in codigos: codigos.append(negocio["codigo"])
                 if negocio["codigo"] in list(self.position.keys()):
                     k = negocio["codigo"]
@@ -99,8 +101,7 @@ class Position:
                     temp = self.position
                     if data not in temp[negocio["codigo"]]["trade"]: temp[negocio["codigo"]]["trade"][data] = []
                     temp[negocio["codigo"]]["trade"][data].append([negocio["quantidade"], negocio["valor_operacao"]])
-                    temp[negocio["codigo"]] = self.add_profit_daytrade(temp[negocio["codigo"]])
-                    temp[negocio["codigo"]] = self.add_negocio(temp[negocio["codigo"]],negocio, data)
+                    temp[negocio["codigo"]] = self.add_negocio(temp[negocio["codigo"]],negocio, data, k)
                     self.position = temp
                 else:
                     negocio["quantidade"] = negocio["quantidade"] if negocio["cv"]=="C" else -negocio["quantidade"]
@@ -129,10 +130,8 @@ class Position:
     
     def add_profit_position (self, temp: dict, codigos: list, data: str) -> dict:
       for codigo in codigos:
-        if codigo == "ABEVE147": print(temp[codigo])
         if data in temp[codigo]["trade"]:
           for trade in temp[codigo]["trade"][data]:
-              if codigo == "ABEVE147": print(trade)
               if trade[0] == 0: continue
               valor_atual = temp[codigo]["preco_medio_novo"]*temp[codigo]["quantidade_novo"]
               temp_qtde = temp[codigo]["quantidade_novo"] + trade[0]
@@ -154,41 +153,12 @@ class Position:
               temp[codigo]["quantidade_novo"] = temp_qtde
               temp[codigo]["preco_medio_novo"] = temp_medio
           del temp[codigo]["trade"][data]
-        if codigo == "ABEVE147": print(temp[codigo])
       return temp
-    
-    def add_profit_daytrade (self, posicao: dict) -> dict:
-      for day in posicao["trade"]:
-        buy = [0,0]
-        sell = [0,0]
-        for trade in posicao["trade"][day]:
-          if trade[0] > 0:  
-            buy[0] += trade[0]
-            buy[1] += trade[1]
-          else:
-            sell[0] += trade[0]
-            sell[1] += trade[1]
-        posicao["trade"][day] = [buy, sell]
-        #Has day trade:
-        if buy[0] and sell[0]:
-          unitary_profit = (sell[1]/sell[0]) - (buy[1]/buy[0])
-          if day not in posicao["lucro_daytrade"]: posicao["lucro_daytrade"][day] = 0
-          lucro = 0
-          if buy[0] >= sell[0]:
-            lucro = -sell[0]*unitary_profit
-            buy = [buy[0]+sell[0], (buy[1]/buy[0])*(buy[0]+sell[0])]
-            posicao["trade"][day] = [buy, [0,0]]
-          if buy[0] < sell[0]:
-            lucro = buy[0]*unitary_profit
-            sell = [sell[0]+buy[0], (sell[1]/sell[0])*(sell[0]+buy[0])]
-            posicao["trade"][day] = [[0,0], sell]
-          posicao["lucro_daytrade"][day] += lucro
-      return posicao
-
 
     #Adiciona um negócio de nota de corretagem à posição atual
-    def add_negocio(self, posicao: dict, negocio: dict, data: str):
-      lucro = posicao["lucro"]
+    def add_negocio(self, posicao: dict, negocio: dict, data: str, codigo: str):
+      lucro_index = "lucro"
+      lucro = posicao[lucro_index]
       if negocio["quantidade"] == 0:
         return posicao
       quantidade_temp = posicao["quantidade"]+negocio["quantidade"]
@@ -204,27 +174,28 @@ class Position:
       if abs(quantidade) > abs(posicao["quantidade"]):
         valor = posicao["valor"]+negocio["valor_operacao"]
         preco_medio = valor/quantidade
-        lucro = posicao["lucro"]
+        lucro = posicao[lucro_index]
       else:
-        if data in posicao["lucro"]:
-          lucro[data] = posicao["lucro"][data] + (negocio["quantidade"]*posicao["preco_medio"]-negocio["valor_operacao"])
+        if data in posicao[lucro_index]:
+          lucro[data] = posicao[lucro_index][data] + (negocio["quantidade"]*posicao["preco_medio"]-negocio["valor_operacao"])
         else:
           lucro[data] = (negocio["quantidade"]*posicao["preco_medio"]-negocio["valor_operacao"])
         valor = quantidade* posicao["preco_medio"]
         preco_medio = posicao["preco_medio"] if quantidade != 0 else 0
-      posicao_temp = {
-          "ativo": posicao['ativo'],
-          "quantidade": quantidade,
-          "prazo": posicao['prazo'],
-          "preco_medio": preco_medio,
-          "quantidade_novo": posicao["quantidade_novo"],
-          "preco_medio_novo": posicao["preco_medio_novo"],
-          "valor": valor,
-          "lucro": lucro,
-          "lucro_daytrade": posicao["lucro_daytrade"],
-          "lucro_normal": posicao["lucro_normal"],
-          "trade": posicao['trade'],
-          "expirado": "false",
-      }
+      if lucro_index == 'lucro':
+        posicao_temp = {
+            "ativo": posicao['ativo'],
+            "quantidade": quantidade,
+            "prazo": posicao['prazo'],
+            "preco_medio": preco_medio,
+            "quantidade_novo": posicao["quantidade_novo"],
+            "preco_medio_novo": posicao["preco_medio_novo"],
+            "valor": valor,
+            "lucro": lucro,
+            "lucro_daytrade": posicao["lucro_daytrade"],
+            "lucro_normal": posicao["lucro_normal"],
+            "trade": posicao['trade'],
+            "expirado": "false",
+        }
       negocio_temp = {"quantidade": quantidade_temp-quantidade, "valor_operacao": negocio_valor_inicial/negocio_quantidade_inicial*(quantidade_temp-quantidade)}
-      return self.add_negocio(posicao_temp, negocio_temp, data)
+      return self.add_negocio(posicao_temp, negocio_temp, data, codigo)

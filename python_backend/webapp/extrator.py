@@ -194,10 +194,8 @@ def agrupar_paginas(headers: list, negocios: list, custos: list) -> tuple:
     Returns:
         list: _description_
     """
-    # n = len(headers)
     n = 0
     while n < len(headers):
-        print(n, headers[n-1], headers[n])
         if headers[n-1:n]:
             if headers[n]['nota'] == headers[n-1]['nota']:
                 #Reindex the index keys to continue after last key of previous negocios
@@ -210,7 +208,16 @@ def agrupar_paginas(headers: list, negocios: list, custos: list) -> tuple:
                 del headers[n-1]
                 n = -1
         n += 1
-    return (headers, negocios, custos,)
+    #calcula o custo de corretagem proporcional por cada operação
+    negocios_com_custo = []
+    for negocio in negocios:
+        negocio_com_custo = []
+        for item in negocio:
+            item['custo_proporcional'] = abs(item['valor_operacao'])/sum(abs(item['valor_operacao']) for item in negocio)
+            negocio_com_custo.append(item)
+        negocios_com_custo.append(negocio_com_custo)
+        
+    return (headers, negocios_com_custo, custos,)
 
 def extrair_header(file_to_open: str, passwd: str, corretora: str, area_headers: list) -> list:
     """_summary_
@@ -271,8 +278,6 @@ def extrair_negocios(file_to_open: str, passwd: str, area_negocios: list) -> lis
         df_negocios['obs'] = df_negocios['obs'].apply(identificar_daytrade)
         df_negocios[['quantidade','preco','valor_operacao']] = df_negocios[['quantidade','preco','valor_operacao']].astype(float)
         df_negocios['codigo'] = df_negocios['nome_pregao'].apply(nome_pregao_to_codigo)
-        #calcula o peso percentual nos custos de corretagem
-        df_negocios['custo_proporcional'] = df_negocios['valor_operacao'].apply(lambda x: abs(x))/sum(df_negocios['valor_operacao'].apply(lambda x: abs(x)))
         df_negocios = df_negocios.reset_index()
         negocios.append(list(df_negocios.to_dict(orient='index').values()))
     return negocios
