@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-
+import copy
 class Position:
     def __init__(self, database) -> None:
         self.__position = database['position']
@@ -124,12 +124,51 @@ class Position:
                         "expirado": "false",
                     }
                     self.position = temp
+            
             temp = self.position
             temp = self.add_profit_position(temp, codigos, data)
+            for codigo in codigos:
+              if codigo[-1] == "D" and temp[codigo]["quantidade"] != 0:
+                print(temp[codigo])
+                #TODO: rechamar a função passando o código sem o D
+                nota_residual = copy.deepcopy(nota)
+                nota_residual["nota"] = nota["nota"]*-1
+                nota_residual["custos"]["total"] = 0.0
+                nota_residual["negocios"] = [
+                    {
+                      "index": 0,
+                      "negociacao": "1-BOVESPA",
+                      "cv": "C" if temp[codigo]["quantidade"] > 0 else "D",
+                      "tipo_mercado": "VISTA",
+                      "nome_pregao": codigo,
+                      "quantidade": abs(temp[codigo]["quantidade"]),
+                      "preco": temp[codigo]["preco_medio"],
+                      "valor_operacao": temp[codigo]["preco_medio"]*temp[codigo]["quantidade"],
+                      "obs": "",
+                      "dc": "C",
+                      "codigo": codigo,
+                }]
+                self.atualizar_posicao(nota_residual)
+                temp[codigo] = {
+                    "ativo": codigo,
+                    "quantidade": 0,
+                    "prazo": temp[codigo]["prazo"],
+                    "valor": 0,
+                    "quantidade_novo": 0,
+                    "preco_medio_novo": 0,
+                    "preco_medio": 0,
+                    "lucro": temp[codigo]["lucro"],
+                    "lucro_daytrade": temp[codigo]["lucro_daytrade"],
+                    "lucro_normal": temp[codigo]["lucro_normal"],
+                    "trade": temp[codigo]["trade"],
+                    "expirado": "false"
+                }
             self.position = temp  
     
     def add_profit_position (self, temp: dict, codigos: list, data: str) -> dict:
       for codigo in codigos:
+        tipo_lucro = "lucro_normal"
+        if codigo[-1] == 'D': tipo_lucro = 'lucro_daytrade'
         if data in temp[codigo]["trade"]:
           for trade in temp[codigo]["trade"][data]:
               if trade[0] == 0: continue
@@ -139,7 +178,7 @@ class Position:
               temp_medio = temp_valor/temp_qtde if temp_qtde else 0
               if temp[codigo]["quantidade_novo"]:
                 if trade[0]/abs(trade[0]) != temp[codigo]["quantidade_novo"]/abs(temp[codigo]["quantidade_novo"]):
-                  if data not in temp[codigo]["lucro_normal"]: temp[codigo]["lucro_normal"][data] = 0 
+                  if data not in temp[codigo][tipo_lucro]: temp[codigo][tipo_lucro][data] = 0 
                   qtde_zerado = trade[0]
                   valor_zerado = trade[1]
                   temp_medio = 0
@@ -149,7 +188,7 @@ class Position:
                       temp_medio = trade[1]/trade[0]
                       qtde_zerado = -temp[codigo]["quantidade_novo"]
                       valor_zerado = qtde_zerado*temp_medio
-                  temp[codigo]["lucro_normal"][data] += qtde_zerado*temp[codigo]["preco_medio_novo"] - valor_zerado
+                  temp[codigo][tipo_lucro][data] += qtde_zerado*temp[codigo]["preco_medio_novo"] - valor_zerado
               temp[codigo]["quantidade_novo"] = temp_qtde
               temp[codigo]["preco_medio_novo"] = temp_medio
           del temp[codigo]["trade"][data]
