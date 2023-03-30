@@ -138,9 +138,9 @@ class Position:
                       "cv": "C" if self.position[codigo]["quantidade"] > 0 else "D",
                       "tipo_mercado": "VISTA",
                       "nome_pregao": codigo[:-1], #código sem o D no final
-                      "quantidade": abs(self.position[codigo]["quantidade"]),
+                      "quantidade": abs(self.position[codigo]["quantidade"]), #na nota é sempre positivo
                       "preco": self.position[codigo]["preco_medio"],
-                      "valor_operacao": self.position[codigo]["preco_medio"]*self.position[codigo]["quantidade"],
+                      "valor_operacao": abs(self.position[codigo]["preco_medio"]*self.position[codigo]["quantidade"]), #na nota é sempre positivo
                       "obs": "",
                       "custo_proporcional": 1,
                       "dc": "C",
