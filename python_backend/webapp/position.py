@@ -61,8 +61,6 @@ class Position:
           temp[key]['expirado'] = "false"
           self.position = temp
 
-          
-    
     def _datetime_to_str_date(self, date: datetime) -> str:
       return date.strftime("%d/%m/%Y")
     
@@ -98,18 +96,19 @@ class Position:
                     negocio["quantidade"] = negocio["quantidade"] if negocio["cv"]=="C" else -negocio["quantidade"]
                     negocio["valor_operacao"] = negocio["valor_operacao"] if negocio["cv"]=="C" else -negocio["valor_operacao"]
                     negocio["valor_operacao"] += nota["custos"]["total"]*negocio['custo_proporcional']
-                    temp = self.position
-                    if data not in temp[negocio["codigo"]]["trade"]: temp[negocio["codigo"]]["trade"][data] = []
-                    temp[negocio["codigo"]]["trade"][data].append([negocio["quantidade"], negocio["valor_operacao"]])
-                    temp[negocio["codigo"]] = self.add_negocio(temp[negocio["codigo"]],negocio, data, k)
-                    self.position = temp
+                    position_temp = self.position
+                    if data not in position_temp[negocio["codigo"]]["trade"]: position_temp[negocio["codigo"]]["trade"][data] = []
+                    position_temp[negocio["codigo"]]["trade"][data].append([negocio["quantidade"], negocio["valor_operacao"]])
+                    position_temp[negocio["codigo"]] = self.add_negocio(position_temp[negocio["codigo"]],negocio, data, k)
+                    self.position = position_temp
+                    
                 else:
                     negocio["quantidade"] = negocio["quantidade"] if negocio["cv"]=="C" else -negocio["quantidade"]
                     negocio["valor_operacao"] = negocio["valor_operacao"] if negocio["cv"]=="C" else -negocio["valor_operacao"]
                     valor = negocio["valor_operacao"] + nota["custos"] ["total"]*negocio['custo_proporcional']
                     preco_medio = valor/negocio["quantidade"]
-                    temp = self.position
-                    temp[negocio["codigo"]] = {
+                    position_temp = self.position
+                    position_temp[negocio["codigo"]] = {
                         "ativo": negocio["codigo"],
                         "quantidade": negocio["quantidade"],
                         "prazo": negocio["prazo"],
@@ -123,14 +122,12 @@ class Position:
                         "trade": {data: [[negocio["quantidade"], valor]]},
                         "expirado": "false",
                     }
-                    self.position = temp
-            
+                    self.position = position_temp  
             temp = self.position
             temp = self.add_profit_position(temp, codigos, data)
+            self.position = temp
             for codigo in codigos:
-              if codigo[-1] == "D" and temp[codigo]["quantidade"] != 0:
-                print(temp[codigo])
-                #TODO: rechamar a função passando o código sem o D
+              if codigo[-1] == "D" and self.position[codigo]["quantidade"] != 0:
                 nota_residual = copy.deepcopy(nota)
                 nota_residual["nota"] = nota["nota"]*-1
                 nota_residual["custos"]["total"] = 0.0
@@ -138,32 +135,34 @@ class Position:
                     {
                       "index": 0,
                       "negociacao": "1-BOVESPA",
-                      "cv": "C" if temp[codigo]["quantidade"] > 0 else "D",
+                      "cv": "C" if self.position[codigo]["quantidade"] > 0 else "D",
                       "tipo_mercado": "VISTA",
-                      "nome_pregao": codigo,
-                      "quantidade": abs(temp[codigo]["quantidade"]),
-                      "preco": temp[codigo]["preco_medio"],
-                      "valor_operacao": temp[codigo]["preco_medio"]*temp[codigo]["quantidade"],
+                      "nome_pregao": codigo[:-1], #código sem o D no final
+                      "quantidade": abs(self.position[codigo]["quantidade"]),
+                      "preco": self.position[codigo]["preco_medio"],
+                      "valor_operacao": self.position[codigo]["preco_medio"]*self.position[codigo]["quantidade"],
                       "obs": "",
+                      "custo_proporcional": 1,
                       "dc": "C",
-                      "codigo": codigo,
+                      "codigo": codigo[:-1],
                 }]
-                self.atualizar_posicao(nota_residual)
-                temp[codigo] = {
+                self.atualizar_posicao([nota_residual])
+                temp_position_zerar_codigo = self.position
+                temp_position_zerar_codigo[codigo] = {
                     "ativo": codigo,
                     "quantidade": 0,
-                    "prazo": temp[codigo]["prazo"],
+                    "prazo": self.position[codigo]["prazo"],
                     "valor": 0,
                     "quantidade_novo": 0,
                     "preco_medio_novo": 0,
                     "preco_medio": 0,
-                    "lucro": temp[codigo]["lucro"],
-                    "lucro_daytrade": temp[codigo]["lucro_daytrade"],
-                    "lucro_normal": temp[codigo]["lucro_normal"],
-                    "trade": temp[codigo]["trade"],
-                    "expirado": "false"
+                    "lucro": self.position[codigo]["lucro"],
+                    "lucro_daytrade": self.position[codigo]["lucro_daytrade"],
+                    "lucro_normal": self.position[codigo]["lucro_normal"],
+                    "trade": self.position[codigo]["trade"],
+                    "expirado": "true"
                 }
-            self.position = temp  
+                self.position = temp_position_zerar_codigo
     
     def add_profit_position (self, temp: dict, codigos: list, data: str) -> dict:
       for codigo in codigos:
@@ -194,7 +193,7 @@ class Position:
           del temp[codigo]["trade"][data]
       return temp
 
-    #Adiciona um negócio de nota de corretagem à posição atual
+    #Adiciona um negócio de nota de corretagem à posição atual 
     def add_negocio(self, posicao: dict, negocio: dict, data: str, codigo: str):
       lucro_index = "lucro"
       lucro = posicao[lucro_index]
